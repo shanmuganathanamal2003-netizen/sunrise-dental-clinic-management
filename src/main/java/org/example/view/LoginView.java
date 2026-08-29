@@ -2,12 +2,12 @@ package org.example.view;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.sql.SQLException;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -20,11 +20,13 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import org.example.dao.UserDAO;
 import org.example.model.User;
+import org.example.view.components.UIHelper;
 
 /**
  * LoginView - User Authentication Screen
  * 
- * Allows clinic staff/administrators to securely log into the system.
+ * Allows clinic staff/administrators to log into the system
+ * or register a new staff account. Supports window maximize/minimize.
  */
 public class LoginView extends JFrame {
 
@@ -34,130 +36,126 @@ public class LoginView extends JFrame {
     private JButton btnClear;
     private JButton btnExit;
 
-    private UserDAO userDAO;
+    private final UserDAO userDAO;
 
     public LoginView() {
         userDAO = new UserDAO();
         initializeUI();
     }
 
+    public void setPrefilledUsername(String username) {
+        if (txtUsername != null && username != null) {
+            txtUsername.setText(username);
+            txtPassword.requestFocus();
+        }
+    }
+
     private void initializeUI() {
         setTitle("Sunrise Dental Clinic - Staff Login");
-        setSize(480, 360);
+        setSize(560, 480);
+        setMinimumSize(new Dimension(500, 440));
         setLocationRelativeTo(null); // Center on screen
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setResizable(false);
-        setLayout(new BorderLayout(10, 10));
+        setResizable(true); // Supports maximize and minimize
+        setLayout(new BorderLayout());
 
-        // ------------------ Header Panel ------------------
-        JPanel headerPanel = new JPanel(new BorderLayout());
-        headerPanel.setBackground(new Color(24, 90, 157)); // Dental Blue
-        headerPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
-
-        JLabel lblTitle = new JLabel("SUNRISE DENTAL CLINIC", SwingConstants.CENTER);
-        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 20));
-        lblTitle.setForeground(Color.WHITE);
-
-        JLabel lblSubtitle = new JLabel("Appointment & Patient Management System", SwingConstants.CENTER);
-        lblSubtitle.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        lblSubtitle.setForeground(new Color(220, 235, 252));
-
-        headerPanel.add(lblTitle, BorderLayout.NORTH);
-        headerPanel.add(lblSubtitle, BorderLayout.SOUTH);
+        // ------------------ Top Header Banner ------------------
+        JPanel headerPanel = UIHelper.createHeaderBanner(
+            "SUNRISE DENTAL CLINIC",
+            "Appointment & Patient Management System - Colombo, Sri Lanka",
+            null
+        );
         add(headerPanel, BorderLayout.NORTH);
 
-        // ------------------ Form Panel ------------------
-        JPanel formPanel = new JPanel(new GridBagLayout());
-        formPanel.setBorder(BorderFactory.createEmptyBorder(20, 30, 10, 30));
+        // ------------------ Centered Content Container ------------------
+        // Using GridBagLayout so that when maximized to full screen, the login card remains centered!
+        JPanel centeringWrapper = new JPanel(new GridBagLayout());
+        centeringWrapper.setBackground(new Color(240, 244, 250));
+
+        JPanel cardPanel = new JPanel(new BorderLayout(10, 10));
+        cardPanel.setPreferredSize(new Dimension(460, 310));
+        cardPanel.setBackground(Color.WHITE);
+        cardPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(200, 215, 230), 1),
+            BorderFactory.createEmptyBorder(18, 25, 18, 25)
+        ));
+
+        // Form Fields
+        JPanel formFields = new JPanel(new GridBagLayout());
+        formFields.setOpaque(false);
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(8, 8, 8, 8);
+        gbc.insets = new Insets(8, 6, 8, 6);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // Username Label & Field
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.weightx = 0.3;
+        // Username
+        gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 0.32;
         JLabel lblUsername = new JLabel("Username:");
-        lblUsername.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        formPanel.add(lblUsername, gbc);
+        lblUsername.setFont(UIHelper.FONT_BOLD);
+        formFields.add(lblUsername, gbc);
 
-        gbc.gridx = 1;
-        gbc.gridy = 0;
-        gbc.weightx = 0.7;
+        gbc.gridx = 1; gbc.weightx = 0.68;
         txtUsername = new JTextField(15);
-        txtUsername.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        formPanel.add(txtUsername, gbc);
+        txtUsername.setFont(UIHelper.FONT_REGULAR);
+        formFields.add(txtUsername, gbc);
 
-        // Password Label & Field
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        gbc.weightx = 0.3;
+        // Password
+        gbc.gridx = 0; gbc.gridy = 1;
         JLabel lblPassword = new JLabel("Password:");
-        lblPassword.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        formPanel.add(lblPassword, gbc);
+        lblPassword.setFont(UIHelper.FONT_BOLD);
+        formFields.add(lblPassword, gbc);
 
         gbc.gridx = 1;
-        gbc.gridy = 1;
-        gbc.weightx = 0.7;
         txtPassword = new JPasswordField(15);
-        txtPassword.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        formPanel.add(txtPassword, gbc);
+        txtPassword.setFont(UIHelper.FONT_REGULAR);
+        formFields.add(txtPassword, gbc);
 
-        add(formPanel, BorderLayout.CENTER);
+        // Default Credentials Hint
+        gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 2;
+        JLabel lblHint = new JLabel("Default logins: admin / admin123  or  staff / staff123", SwingConstants.CENTER);
+        lblHint.setFont(new Font("Segoe UI", Font.ITALIC, 11));
+        lblHint.setForeground(new Color(0, 90, 190));
+        formFields.add(lblHint, gbc);
 
-        // ------------------ Button Panel ------------------
-        JPanel buttonPanel = new JPanel();
-        buttonPanel.setBorder(BorderFactory.createEmptyBorder(0, 15, 20, 15));
+        cardPanel.add(formFields, BorderLayout.NORTH);
 
-        btnLogin = new JButton("Login");
-        btnLogin.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        btnLogin.setBackground(new Color(24, 90, 157));
-        btnLogin.setForeground(Color.WHITE);
+        // Buttons Section
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 8));
+        buttonPanel.setOpaque(false);
 
-        btnClear = new JButton("Clear");
-        btnClear.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-
-        btnExit = new JButton("Exit");
-        btnExit.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        btnLogin = UIHelper.createPrimaryButton("Login", new Dimension(100, 36));
+        btnClear = UIHelper.createSecondaryButton("Clear", new Dimension(85, 36));
+        btnExit = UIHelper.createSecondaryButton("Exit", new Dimension(85, 36));
 
         buttonPanel.add(btnLogin);
         buttonPanel.add(btnClear);
         buttonPanel.add(btnExit);
 
-        add(buttonPanel, BorderLayout.SOUTH);
+        cardPanel.add(buttonPanel, BorderLayout.SOUTH);
+
+        centeringWrapper.add(cardPanel);
+        add(centeringWrapper, BorderLayout.CENTER);
 
         // Enter key in password triggers login
         txtPassword.addActionListener(e -> performLogin());
 
         // Event Handlers
-        btnLogin.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                performLogin();
-            }
+        btnLogin.addActionListener(e -> performLogin());
+
+        btnClear.addActionListener(e -> {
+            txtUsername.setText("");
+            txtPassword.setText("");
+            txtUsername.requestFocus();
         });
 
-        btnClear.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                txtUsername.setText("");
-                txtPassword.setText("");
-                txtUsername.requestFocus();
-            }
-        });
-
-        btnExit.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                int confirm = JOptionPane.showConfirmDialog(
-                    LoginView.this,
-                    "Are you sure you want to exit the application?",
-                    "Exit Confirmation",
-                    JOptionPane.YES_NO_OPTION
-                );
-                if (confirm == JOptionPane.YES_OPTION) {
-                    System.exit(0);
-                }
+        btnExit.addActionListener(e -> {
+            int confirm = JOptionPane.showConfirmDialog(
+                LoginView.this,
+                "Are you sure you want to exit the application?",
+                "Exit Confirmation",
+                JOptionPane.YES_NO_OPTION
+            );
+            if (confirm == JOptionPane.YES_OPTION) {
+                System.exit(0);
             }
         });
     }
@@ -184,15 +182,17 @@ public class LoginView extends JFrame {
         try {
             User user = userDAO.authenticate(username, password);
             if (user != null) {
+                System.out.println("[Auth] User successfully logged in: " + user.getFullName() + " [" + user.getRole() + "]");
+                user.printDetails();
+
                 JOptionPane.showMessageDialog(
                     this,
-                    "Login Successful! Welcome, " + user.getFullName(),
-                    "Success",
+                    "Login Successful!\nWelcome, " + user.getFullName() + " (" + user.getRole() + ")",
+                    "Welcome",
                     JOptionPane.INFORMATION_MESSAGE
                 );
                 // Open Main Menu Dashboard
-                new MainMenuView(user).setVisible(true);
-                this.dispose(); // Close login window
+                UIHelper.navigate(this, new MainMenuView(user));
             } else {
                 JOptionPane.showMessageDialog(
                     this,
@@ -213,3 +213,4 @@ public class LoginView extends JFrame {
         }
     }
 }
+

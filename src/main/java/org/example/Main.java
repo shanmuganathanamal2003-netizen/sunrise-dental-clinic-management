@@ -2,6 +2,7 @@ package org.example;
 
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+
 import org.example.db.DBConnection;
 import org.example.view.LoginView;
 
@@ -9,19 +10,6 @@ import org.example.view.LoginView;
  * ====================================================================
  * SUNRISE DENTAL CLINIC - APPOINTMENT & PATIENT MANAGEMENT SYSTEM
  * ====================================================================
- * 
- * Main Application Entry Point.
- * 
- * Responsibilities:
- * 1. Sets native system Look & Feel for clean desktop UI.
- * 2. Checks database connectivity (prompts instructions if WAMP is offline).
- * 3. Launches the Login screen on the Swing Event Dispatch Thread (EDT).
- * 
- * Stack:
- * - Java 17+ / Swing GUI
- * - JDBC with MySQL Connector/J
- * - Maven Project
- * - MySQL / WAMP (localhost:3306)
  */
 public class Main {
 
@@ -30,7 +18,7 @@ public class Main {
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception e) {
-            System.err.println("Could not apply system look and feel: " + e.getMessage());
+            System.out.println("Could not apply system look and feel: " + e.getMessage());
         }
 
         // Step 2: Test database connection in background
@@ -48,5 +36,7 @@ public class Main {
             LoginView loginView = new LoginView();
             loginView.setVisible(true);
         });
+
+
     }
 }
