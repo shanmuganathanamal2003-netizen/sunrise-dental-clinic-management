@@ -43,6 +43,7 @@ public class BillingService {
         double total = calculateTotal(consultationFee, treatmentCost);
         String issuer = (issuedBy != null) ? issuedBy.getFullName() : "Authorized Staff";
         String printTimestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+        String patientAge = (appt.getPatientAge() != null) ? appt.getPatientAge() : "1 Month";
 
         StringBuilder sb = new StringBuilder();
         sb.append("=========================================================\n");
@@ -52,30 +53,61 @@ public class BillingService {
         sb.append("=========================================================\n");
         sb.append("               OFFICIAL PATIENT RECEIPT                  \n");
         sb.append("---------------------------------------------------------\n");
-        sb.append(String.format(" Receipt Number  : REC-%04d\n", appt.getAppointmentNumber()));
-        sb.append(String.format(" Appointment No : %d\n", appt.getAppointmentNumber()));
-        sb.append(String.format(" Issued Date     : %s\n", printTimestamp));
+        sb.append(" Receipt Number  : REC-" + appt.getAppointmentNumber() + "\n");
+        sb.append(" Appointment No  : " + appt.getAppointmentNumber() + "\n");
+        sb.append(" Issued Date     : " + printTimestamp + "\n");
         sb.append("---------------------------------------------------------\n");
-        sb.append(String.format(" Patient Name    : %s (Age: %s)\n", appt.getPatientName(), (appt.getPatientAge() != null ? appt.getPatientAge() : "1 Month")));
-        sb.append(String.format(" Contact Number  : %s\n", appt.getContactNumber()));
-        sb.append(String.format(" Address         : %s\n", appt.getAddress()));
-        sb.append(String.format(" Assigned Doctor : %s\n", appt.getDentistName()));
-        sb.append(String.format(" Appt Date/Time  : %s (%s)\n", appt.getAppointmentDate(), appt.getAppointmentTime()));
+        sb.append(" Patient Name    : " + appt.getPatientName() + " (Age: " + patientAge + ")\n");
+        sb.append(" Contact Number  : " + appt.getContactNumber() + "\n");
+        sb.append(" Address         : " + appt.getAddress() + "\n");
+        sb.append(" Assigned Doctor : " + appt.getDentistName() + "\n");
+        sb.append(" Appt Date/Time  : " + appt.getAppointmentDate() + " (" + appt.getAppointmentTime() + ")\n");
         sb.append("---------------------------------------------------------\n");
-        sb.append(String.format(" %-35s %18s\n", "ITEM / PROCEDURE DESCRIPTION", "AMOUNT (LKR)"));
+        sb.append(" ITEM / PROCEDURE DESCRIPTION                    AMOUNT (LKR)\n");
         sb.append("---------------------------------------------------------\n");
-        sb.append(String.format(" 1. Consultation Fee               %18.2f\n", consultationFee));
-        sb.append(String.format(" 2. %-30s %18.2f\n", truncate(appt.getTreatmentType(), 30), treatmentCost));
+        sb.append(" 1. Consultation Fee                             LKR " + consultationFee + "\n");
+        sb.append(" 2. " + truncate(appt.getTreatmentType(), 30) + "                  LKR " + treatmentCost + "\n");
         sb.append("---------------------------------------------------------\n");
-        sb.append(String.format(" GRAND TOTAL BILL (LKR)           %18.2f\n", total));
+        sb.append(" GRAND TOTAL BILL (LKR)                          LKR " + total + "\n");
         sb.append("=========================================================\n");
-        sb.append(" Payment Status : PAID IN FULL\n");
-        sb.append(" Billed By      : " + issuer + "\n\n");
+        sb.append(" Payment Status  : PAID IN FULL\n");
+        sb.append(" Billed By       : " + issuer + "\n\n");
         sb.append("         Thank you for choosing Sunrise Dental!          \n");
         sb.append("     For emergency inquiries, call +94 11 234 5678       \n");
         sb.append("=========================================================\n");
 
         return sb.toString();
+    }
+
+    /**
+     * Calculates total bill for a given Appointment object.
+     */
+    public double calculateTotalBill(Appointment appt) {
+        if (appt == null) return 0.0;
+        return calculateTotal(appt.getConsultationFee(), appt.getTreatmentCost());
+    }
+
+    /**
+     * Prints receipt details directly using System.out.println.
+     */
+    public void printReceiptToConsole(Appointment appt, double consultationFee, double treatmentCost, User issuedBy) {
+        String receipt = generateReceipt(appt, consultationFee, treatmentCost, issuedBy);
+        System.out.println(receipt);
+    }
+
+    /**
+     * Displays summary of billing computation using System.out.println.
+     */
+    public void displayBillDetails(Appointment appt) {
+        if (appt == null) return;
+        System.out.println("====== BILL DETAILS ======");
+        System.out.println("Appointment Number: " + appt.getAppointmentNumber());
+        System.out.println("Patient Name      : " + appt.getPatientName());
+        System.out.println("Consultation Fee  : LKR " + appt.getConsultationFee());
+        System.out.println("Treatment Cost    : LKR " + appt.getTreatmentCost());
+        System.out.println("Total Amount Due  : LKR " + calculateTotalBill(appt));
+        System.out.println("Billing Status    : " + appt.getStatus());
+        System.out.println("==========================");
     }
 
     private String truncate(String val, int maxLen) {

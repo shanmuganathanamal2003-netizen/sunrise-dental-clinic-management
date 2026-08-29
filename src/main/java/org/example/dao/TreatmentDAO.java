@@ -22,6 +22,7 @@ public class TreatmentDAO {
      * 
      * @return List of Treatment objects
      */
+
     public List<Treatment> getAllTreatments() {
         List<Treatment> treatments = new ArrayList<>();
         String sql = "SELECT treatment_id, treatment_name, treatment_cost, consultation_fee FROM treatments ORDER BY treatment_id ASC";
@@ -39,7 +40,7 @@ public class TreatmentDAO {
                 ));
             }
         } catch (SQLException e) {
-            System.err.println("Could not load treatments from DB, using defaults: " + e.getMessage());
+            System.out.println("Could not load treatments from DB, using defaults: " + e.getMessage());
         }
 
         // Fallback default list if DB had 0 records or wasn't populated yet
@@ -80,8 +81,81 @@ public class TreatmentDAO {
                 }
             }
         } catch (SQLException e) {
-            System.err.println("Error fetching treatment by name: " + e.getMessage());
+            System.out.println("Error fetching treatment by name: " + e.getMessage());
         }
         return null;
+    }
+
+    /**
+     * Finds a treatment by its ID.
+     */
+    public Treatment getTreatmentById(int treatmentId) {
+        String sql = "SELECT treatment_id, treatment_name, treatment_cost, consultation_fee FROM treatments WHERE treatment_id = ?";
+        
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, treatmentId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return new Treatment(
+                        rs.getInt("treatment_id"),
+                        rs.getString("treatment_name"),
+                        rs.getDouble("treatment_cost"),
+                        rs.getDouble("consultation_fee")
+                    );
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Error fetching treatment by ID: " + e.getMessage());
+        }
+        return null;
+    }
+
+    /**
+     * Adds a new treatment procedure into the database.
+     */
+    public boolean addTreatment(Treatment treatment) throws SQLException {
+        String sql = "INSERT INTO treatments (treatment_name, treatment_cost, consultation_fee) VALUES (?, ?, ?)";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, treatment.getTreatmentName());
+            stmt.setDouble(2, treatment.getTreatmentCost());
+            stmt.setDouble(3, treatment.getConsultationFee());
+            return stmt.executeUpdate() > 0;
+        }
+    }
+
+    /**
+     * Updates an existing treatment procedure.
+     */
+    public boolean updateTreatment(Treatment treatment) throws SQLException {
+        String sql = "UPDATE treatments SET treatment_name = ?, treatment_cost = ?, consultation_fee = ? WHERE treatment_id = ?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, treatment.getTreatmentName());
+            stmt.setDouble(2, treatment.getTreatmentCost());
+            stmt.setDouble(3, treatment.getConsultationFee());
+            stmt.setInt(4, treatment.getTreatmentId());
+            return stmt.executeUpdate() > 0;
+        }
+    }
+
+    /**
+     * Deletes a treatment procedure by ID.
+     */
+    public boolean deleteTreatment(int treatmentId) throws SQLException {
+        String sql = "DELETE FROM treatments WHERE treatment_id = ?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, treatmentId);
+            return stmt.executeUpdate() > 0;
+        }
     }
 }

@@ -10,8 +10,7 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.print.PrinterException;
 import java.sql.SQLException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -23,29 +22,34 @@ import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
-import org.example.dao.AppointmentDAO;
 import org.example.model.Appointment;
 import org.example.model.User;
+import org.example.service.AppointmentService;
+import org.example.service.BillingService;
+import org.example.view.components.AppMenuBar;
+import org.example.view.components.UIHelper;
 
 /**
- * BillView - Calculate and Print Bill Screen
+ * BillView - Calculate & Print Patient Invoices & Receipts
  * 
- * Allows staff to calculate the total fee (Treatment Cost + Consultation Fee),
- * preview a formatted receipt, save the billing record to the database,
- * and print or export the receipt as PDF.
+ * Allows staff to lookup an appointment by Patient Name or ID, calculate fees,
+ * preview formatted receipt, save to database, and print/export to PDF.
  */
 public class BillView extends JFrame {
 
-    private User currentUser;
-    private AppointmentDAO appointmentDAO;
+    private final User currentUser;
+    private final AppointmentService appointmentService;
+    private final BillingService billingService;
     private Appointment currentAppointment;
 
     // Search Controls
-    private JTextField txtApptNumberInput;
+    private JTextField txtSearchInput;
     private JButton btnFetch;
+    private JButton btnBrowseTable;
 
     // Appointment Summary Labels
     private JLabel lblPatientVal;
+    private JLabel lblAgeVal;
     private JLabel lblDentistVal;
     private JLabel lblTreatmentVal;
     private JLabel lblDateTimeVal;
@@ -58,69 +62,63 @@ public class BillView extends JFrame {
 
     // Receipt Preview & Print Controls
     private JTextArea txtReceiptArea;
-    private JButton btnGenerateReceipt;
+    private JButton btnPatientHistory;
     private JButton btnPrint;
     private JButton btnSaveBill;
     private JButton btnBack;
 
     public BillView(User user, int preloadedApptNumber) {
         this.currentUser = user;
-        this.appointmentDAO = new AppointmentDAO();
+        this.appointmentService = new AppointmentService();
+        this.billingService = new BillingService();
         initializeUI();
 
         if (preloadedApptNumber > 0) {
-            txtApptNumberInput.setText(String.valueOf(preloadedApptNumber));
-            fetchAppointmentData(preloadedApptNumber);
+            txtSearchInput.setText(String.valueOf(preloadedApptNumber));
+            fetchAppointmentData(txtSearchInput.getText().trim());
         }
     }
 
     private void initializeUI() {
-        setTitle("Sunrise Dental Clinic - Calculate & Print Bill");
-        setSize(850, 680);
+        setTitle("Sunrise Dental Clinic - Calculate & Print Patient Bill");
+        setSize(960, 740);
+        setMinimumSize(new Dimension(840, 600));
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setResizable(true);
         setLayout(new BorderLayout(10, 10));
 
-        // ------------------ Header Panel ------------------
-        JPanel headerPanel = new JPanel(new BorderLayout());
-        headerPanel.setBackground(new Color(24, 90, 157));
-        headerPanel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
+        // Reusable Top Menu Bar
+        setJMenuBar(AppMenuBar.createMenuBar(this, currentUser));
 
-        JLabel lblTitle = new JLabel("CALCULATE & PRINT PATIENT BILL", SwingConstants.CENTER);
-        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        lblTitle.setForeground(Color.WHITE);
-
-        JLabel lblSubtitle = new JLabel("Sunrise Dental Clinic - Billing and Invoicing Department", SwingConstants.CENTER);
-        lblSubtitle.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        lblSubtitle.setForeground(new Color(220, 235, 252));
-
-        headerPanel.add(lblTitle, BorderLayout.NORTH);
-        headerPanel.add(lblSubtitle, BorderLayout.SOUTH);
+        // ------------------ Top Header Banner ------------------
+        JPanel headerPanel = UIHelper.createHeaderBanner(
+            "CALCULATE & PRINT PATIENT BILL",
+            "Billing and Invoicing Department - Fee computation, database updates, and receipt printing",
+            currentUser
+        );
         add(headerPanel, BorderLayout.NORTH);
 
         // ------------------ Main Split Layout ------------------
-        // Left Side: Inputs and Calculations
         JPanel leftPanel = new JPanel(new BorderLayout(10, 10));
         leftPanel.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 10));
 
         // 1. Search Box
         JPanel lookupPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 8));
-        lookupPanel.setBorder(BorderFactory.createTitledBorder("Step 1: Select Appointment"));
+        lookupPanel.setBorder(BorderFactory.createTitledBorder("Step 1: Select Patient / Appt #"));
 
-        JLabel lblAppt = new JLabel("Appt No:");
-        lblAppt.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        txtApptNumberInput = new JTextField(8);
-        txtApptNumberInput.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        JLabel lblAppt = new JLabel("Patient Name / Appt #:");
+        lblAppt.setFont(UIHelper.FONT_BOLD);
+        txtSearchInput = new JTextField(12);
+        txtSearchInput.setFont(UIHelper.FONT_REGULAR);
 
-        btnFetch = new JButton("Load Details");
-        btnFetch.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        btnFetch.setBackground(new Color(24, 90, 157));
-        btnFetch.setForeground(Color.WHITE);
+        btnFetch = UIHelper.createPrimaryButton("Load Details", new Dimension(110, 28));
+        btnBrowseTable = UIHelper.createSecondaryButton("Browse Table", new Dimension(110, 28));
 
         lookupPanel.add(lblAppt);
-        lookupPanel.add(txtApptNumberInput);
+        lookupPanel.add(txtSearchInput);
         lookupPanel.add(btnFetch);
+        lookupPanel.add(btnBrowseTable);
         leftPanel.add(lookupPanel, BorderLayout.NORTH);
 
         // 2. Details & Fee Calculation Form
@@ -136,61 +134,51 @@ public class BillView extends JFrame {
 
         int row = 0;
 
-        // Patient Info Rows
         lblPatientVal = addInfoRow(calcFormPanel, gbc, row++, "Patient Name:", "-");
+        lblAgeVal = addInfoRow(calcFormPanel, gbc, row++, "Patient Age:", "-");
         lblDentistVal = addInfoRow(calcFormPanel, gbc, row++, "Dentist:", "-");
         lblTreatmentVal = addInfoRow(calcFormPanel, gbc, row++, "Treatment:", "-");
         lblDateTimeVal = addInfoRow(calcFormPanel, gbc, row++, "Date & Time:", "-");
 
-        // Separator
-        gbc.gridx = 0;
-        gbc.gridy = row++;
-        gbc.gridwidth = 2;
+        gbc.gridx = 0; gbc.gridy = row++; gbc.gridwidth = 2;
         calcFormPanel.add(new JLabel("--------------------------------------------------"), gbc);
         gbc.gridwidth = 1;
 
         // Fee Inputs
-        gbc.gridx = 0;
-        gbc.gridy = row;
+        gbc.gridx = 0; gbc.gridy = row;
         JLabel lblFeeTag = new JLabel("Consultation Fee (LKR):");
-        lblFeeTag.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        lblFeeTag.setFont(UIHelper.FONT_BOLD);
         calcFormPanel.add(lblFeeTag, gbc);
 
         gbc.gridx = 1;
         txtConsultFee = new JTextField("1500.00", 10);
-        txtConsultFee.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        txtConsultFee.setFont(UIHelper.FONT_REGULAR);
         calcFormPanel.add(txtConsultFee, gbc);
         row++;
 
-        gbc.gridx = 0;
-        gbc.gridy = row;
+        gbc.gridx = 0; gbc.gridy = row;
         JLabel lblCostTag = new JLabel("Treatment Cost (LKR):");
-        lblCostTag.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        lblCostTag.setFont(UIHelper.FONT_BOLD);
         calcFormPanel.add(lblCostTag, gbc);
 
         gbc.gridx = 1;
         txtTreatmentCost = new JTextField("0.00", 10);
-        txtTreatmentCost.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        txtTreatmentCost.setFont(UIHelper.FONT_REGULAR);
         calcFormPanel.add(txtTreatmentCost, gbc);
         row++;
 
         // Calculate Button
-        gbc.gridx = 0;
-        gbc.gridy = row;
-        gbc.gridwidth = 2;
-        btnCalculate = new JButton("Calculate Total Amount");
-        btnCalculate.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        btnCalculate.setBackground(new Color(240, 244, 250));
+        gbc.gridx = 0; gbc.gridy = row; gbc.gridwidth = 2;
+        btnCalculate = UIHelper.createPrimaryButton("Calculate Total Amount", new Dimension(220, 32));
         calcFormPanel.add(btnCalculate, gbc);
         gbc.gridwidth = 1;
         row++;
 
         // Total Amount Display
-        gbc.gridx = 0;
-        gbc.gridy = row;
+        gbc.gridx = 0; gbc.gridy = row;
         JLabel lblTotalTag = new JLabel("TOTAL BILL:");
-        lblTotalTag.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        lblTotalTag.setForeground(new Color(24, 90, 157));
+        lblTotalTag.setFont(UIHelper.FONT_BOLD);
+        lblTotalTag.setForeground(UIHelper.COLOR_PRIMARY);
         calcFormPanel.add(lblTotalTag, gbc);
 
         gbc.gridx = 1;
@@ -220,30 +208,19 @@ public class BillView extends JFrame {
 
         // Split Pane
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftPanel, rightPanel);
-        splitPane.setDividerLocation(380);
+        splitPane.setDividerLocation(440);
         splitPane.setResizeWeight(0.45);
         add(splitPane, BorderLayout.CENTER);
 
         // ------------------ Bottom Action Buttons ------------------
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 12, 12));
 
-        btnGenerateReceipt = new JButton("Generate Receipt");
-        btnGenerateReceipt.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        btnPatientHistory = UIHelper.createSecondaryButton("Patient History", new Dimension(150, 36));
+        btnSaveBill = UIHelper.createSuccessButton("Save Bill to DB", new Dimension(150, 36));
+        btnPrint = UIHelper.createPrimaryButton("Print / Save as PDF", new Dimension(170, 36));
+        btnBack = UIHelper.createSecondaryButton("Back to Dashboard", new Dimension(150, 36));
 
-        btnSaveBill = new JButton("Save Bill to DB");
-        btnSaveBill.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        btnSaveBill.setBackground(new Color(40, 140, 60));
-        btnSaveBill.setForeground(Color.WHITE);
-
-        btnPrint = new JButton("Print / Save as PDF");
-        btnPrint.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        btnPrint.setBackground(new Color(24, 90, 157));
-        btnPrint.setForeground(Color.WHITE);
-
-        btnBack = new JButton("Back to Main Menu");
-        btnBack.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-
-        buttonPanel.add(btnGenerateReceipt);
+        buttonPanel.add(btnPatientHistory);
         buttonPanel.add(btnSaveBill);
         buttonPanel.add(btnPrint);
         buttonPanel.add(btnBack);
@@ -252,57 +229,71 @@ public class BillView extends JFrame {
 
         // ------------------ Action Listeners ------------------
         btnFetch.addActionListener(e -> {
-            String text = txtApptNumberInput.getText().trim();
+            String text = txtSearchInput.getText().trim();
             if (text.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Please enter an Appointment Number.", "Input Required", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Please enter an Appointment Number or Patient Name.", "Input Required", JOptionPane.WARNING_MESSAGE);
                 return;
             }
-            try {
-                int id = Integer.parseInt(text);
-                fetchAppointmentData(id);
-            } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(this, "Please enter a valid numeric Appointment Number.", "Invalid Number", JOptionPane.ERROR_MESSAGE);
-            }
+            fetchAppointmentData(text);
         });
 
-        txtApptNumberInput.addActionListener(e -> btnFetch.doClick());
+        btnBrowseTable.addActionListener(e -> {
+            UIHelper.navigate(this, new AppointmentListView(currentUser));
+        });
 
-        btnCalculate.addActionListener(e -> calculateTotal());
-
-        btnGenerateReceipt.addActionListener(e -> generateReceiptText());
-
+        txtSearchInput.addActionListener(e -> btnFetch.doClick());
+        btnCalculate.addActionListener(e -> {
+            if (calculateTotal() >= 0 && currentAppointment != null) {
+                generateReceiptText();
+            }
+        });
+        btnPatientHistory.addActionListener(e -> {
+            if (currentAppointment != null && currentAppointment.getPatientId() != null && currentAppointment.getPatientId() > 0) {
+                UIHelper.navigate(this, new PatientHistoryView(currentUser, currentAppointment.getPatientId()));
+            } else {
+                UIHelper.navigate(this, new PatientHistoryView(currentUser));
+            }
+        });
         btnSaveBill.addActionListener(e -> saveBillToDatabase());
-
         btnPrint.addActionListener(e -> printReceipt());
 
         btnBack.addActionListener(e -> {
-            new MainMenuView(currentUser).setVisible(true);
-            dispose();
+            UIHelper.navigate(this, new MainMenuView(currentUser));
         });
     }
 
     private JLabel addInfoRow(JPanel panel, GridBagConstraints gbc, int row, String label, String defaultVal) {
-        gbc.gridx = 0;
-        gbc.gridy = row;
-        gbc.weightx = 0.4;
+        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0.4;
         JLabel lbl = new JLabel(label);
-        lbl.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        lbl.setFont(UIHelper.FONT_REGULAR);
         panel.add(lbl, gbc);
 
-        gbc.gridx = 1;
-        gbc.weightx = 0.6;
+        gbc.gridx = 1; gbc.weightx = 0.6;
         JLabel val = new JLabel(defaultVal);
-        val.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        val.setFont(UIHelper.FONT_BOLD);
         panel.add(val, gbc);
         return val;
     }
 
-    private void fetchAppointmentData(int apptNo) {
+    private void fetchAppointmentData(String query) {
         try {
-            Appointment appt = appointmentDAO.getAppointmentByNumber(apptNo);
+            Appointment appt = null;
+            if (query.matches("^\\d+$")) {
+                int id = Integer.parseInt(query);
+                appt = appointmentService.getAppointmentByNumber(id);
+            }
+
+            if (appt == null) {
+                List<Appointment> results = appointmentService.searchAppointments(query);
+                if (!results.isEmpty()) {
+                    appt = results.get(0);
+                }
+            }
+
             if (appt != null) {
                 this.currentAppointment = appt;
                 lblPatientVal.setText(appt.getPatientName());
+                lblAgeVal.setText(appt.getPatientAge() != null ? appt.getPatientAge() : "1 Month");
                 lblDentistVal.setText(appt.getDentistName());
                 lblTreatmentVal.setText(appt.getTreatmentType());
                 lblDateTimeVal.setText(appt.getAppointmentDate() + " " + appt.getAppointmentTime());
@@ -311,13 +302,13 @@ public class BillView extends JFrame {
                 txtTreatmentCost.setText(String.format("%.2f", appt.getTreatmentCost()));
                 
                 double total = appt.getConsultationFee() + appt.getTreatmentCost();
-                lblCalculatedTotal.setText(String.format("LKR %.2f", total));
+                lblCalculatedTotal.setText(String.format("LKR %,.2f", total));
 
                 generateReceiptText();
             } else {
                 JOptionPane.showMessageDialog(
                     this,
-                    "No appointment found with ID: " + apptNo,
+                    "No appointment found matching: " + query,
                     "Appointment Not Found",
                     JOptionPane.WARNING_MESSAGE
                 );
@@ -336,17 +327,11 @@ public class BillView extends JFrame {
         try {
             double fee = Double.parseDouble(txtConsultFee.getText().trim());
             double cost = Double.parseDouble(txtTreatmentCost.getText().trim());
-            
-            if (fee < 0 || cost < 0) {
-                JOptionPane.showMessageDialog(this, "Fees cannot be negative values.", "Invalid Input", JOptionPane.WARNING_MESSAGE);
-                return -1;
-            }
-
-            double total = fee + cost;
-            lblCalculatedTotal.setText(String.format("LKR %.2f", total));
+            double total = billingService.calculateTotal(fee, cost);
+            lblCalculatedTotal.setText(String.format("LKR %,.2f", total));
             return total;
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "Please enter valid numeric fee amounts.", "Number Format Error", JOptionPane.ERROR_MESSAGE);
+        } catch (IllegalArgumentException e) {
+            JOptionPane.showMessageDialog(this, e.getMessage(), "Input Error", JOptionPane.WARNING_MESSAGE);
             return -1;
         }
     }
@@ -363,48 +348,10 @@ public class BillView extends JFrame {
         double fee = Double.parseDouble(txtConsultFee.getText().trim());
         double cost = Double.parseDouble(txtTreatmentCost.getText().trim());
 
-        String issuer = (currentUser != null) ? currentUser.getFullName() : "Authorized Staff";
-        String printTimestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
-
-        StringBuilder sb = new StringBuilder();
-        sb.append("=========================================================\n");
-        sb.append("                SUNRISE DENTAL CLINIC                    \n");
-        sb.append("         No. 45, Galle Road, Colombo 03, Sri Lanka        \n");
-        sb.append("                Tel: +94 11 234 5678                     \n");
-        sb.append("=========================================================\n");
-        sb.append("               OFFICIAL PATIENT RECEIPT                  \n");
-        sb.append("---------------------------------------------------------\n");
-        sb.append(String.format(" Receipt Number  : REC-%04d\n", currentAppointment.getAppointmentNumber()));
-        sb.append(String.format(" Appointment No : %d\n", currentAppointment.getAppointmentNumber()));
-        sb.append(String.format(" Issued Date     : %s\n", printTimestamp));
-        sb.append("---------------------------------------------------------\n");
-        sb.append(String.format(" Patient Name    : %s\n", currentAppointment.getPatientName()));
-        sb.append(String.format(" Contact Number  : %s\n", currentAppointment.getContactNumber()));
-        sb.append(String.format(" Address         : %s\n", currentAppointment.getAddress()));
-        sb.append(String.format(" Assigned Doctor : %s\n", currentAppointment.getDentistName()));
-        sb.append(String.format(" Appt Date/Time  : %s (%s)\n", currentAppointment.getAppointmentDate(), currentAppointment.getAppointmentTime()));
-        sb.append("---------------------------------------------------------\n");
-        sb.append(String.format(" %-35s %18s\n", "ITEM / PROCEDURE DESCRIPTION", "AMOUNT (LKR)"));
-        sb.append("---------------------------------------------------------\n");
-        sb.append(String.format(" 1. Consultation Fee               %18.2f\n", fee));
-        sb.append(String.format(" 2. %-30s %18.2f\n", truncate(currentAppointment.getTreatmentType(), 30), cost));
-        sb.append("---------------------------------------------------------\n");
-        sb.append(String.format(" GRAND TOTAL BILL (LKR)           %18.2f\n", total));
-        sb.append("=========================================================\n");
-        sb.append(" Payment Status : PAID IN FULL\n");
-        sb.append(" Billed By      : " + issuer + "\n\n");
-        sb.append("         Thank you for choosing Sunrise Dental!          \n");
-        sb.append("     For emergency inquiries, call +94 11 234 5678       \n");
-        sb.append("=========================================================\n");
-
-        txtReceiptArea.setText(sb.toString());
+        String receipt = billingService.generateReceipt(currentAppointment, fee, cost, currentUser);
+        txtReceiptArea.setText(receipt);
         txtReceiptArea.setCaretPosition(0);
-    }
-
-    private String truncate(String val, int maxLen) {
-        if (val == null) return "";
-        if (val.length() <= maxLen) return val;
-        return val.substring(0, maxLen - 3) + "...";
+        billingService.printReceiptToConsole(currentAppointment, fee, cost, currentUser);
     }
 
     private void saveBillToDatabase() {
@@ -420,27 +367,21 @@ public class BillView extends JFrame {
         double cost = Double.parseDouble(txtTreatmentCost.getText().trim());
 
         try {
-            boolean updated = appointmentDAO.updateAppointmentBilling(
-                currentAppointment.getAppointmentNumber(),
-                cost,
-                fee,
-                total
-            );
-
+            boolean updated = billingService.processBill(currentAppointment.getAppointmentNumber(), cost, fee);
             if (updated) {
                 currentAppointment.setConsultationFee(fee);
                 currentAppointment.setTreatmentCost(cost);
                 currentAppointment.setTotalBill(total);
                 currentAppointment.setStatus("Billed");
 
+                System.out.println("[Billing] Bill saved to database for Appointment #" + currentAppointment.getAppointmentNumber() + ", Total: LKR " + total);
+
                 JOptionPane.showMessageDialog(
                     this,
-                    "Billing details successfully updated and saved in MySQL database!\nTotal: LKR " + String.format("%.2f", total),
+                    "Billing details successfully updated and saved in MySQL database!\nTotal: LKR " + total,
                     "Bill Saved",
                     JOptionPane.INFORMATION_MESSAGE
                 );
-            } else {
-                JOptionPane.showMessageDialog(this, "Failed to update bill record in database.", "Update Error", JOptionPane.ERROR_MESSAGE);
             }
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(
@@ -460,8 +401,8 @@ public class BillView extends JFrame {
 
         try {
             boolean complete = txtReceiptArea.print(
-                new java.text.MessageFormat("Sunrise Dental Clinic - Patient Receipt"),
-                new java.text.MessageFormat("Page - {0}")
+                new java.text.MessageFormat("Sunrise Dental Clinic - Official Receipt"),
+                new java.text.MessageFormat("Page {0}")
             );
             if (complete) {
                 JOptionPane.showMessageDialog(this, "Printing completed successfully.", "Print Job Done", JOptionPane.INFORMATION_MESSAGE);
@@ -469,10 +410,11 @@ public class BillView extends JFrame {
         } catch (PrinterException ex) {
             JOptionPane.showMessageDialog(
                 this,
-                "Printing error: " + ex.getMessage() + "\n(You can also choose 'Microsoft Print to PDF' to save as PDF file)",
+                "Printing error: " + ex.getMessage() + "\n(You can select 'Microsoft Print to PDF' to save as PDF)",
                 "Print Error",
                 JOptionPane.ERROR_MESSAGE
             );
         }
     }
 }
+

@@ -14,6 +14,7 @@ public class Treatment {
     public Treatment() {
     }
 
+
     // Parameterized Constructor
     public Treatment(int treatmentId, String treatmentName, double treatmentCost, double consultationFee) {
         this.treatmentId = treatmentId;
@@ -64,6 +65,19 @@ public class Treatment {
 
     public double getTotalEstimate() {
         return treatmentCost + consultationFee;
+    }
+
+    /**
+     * Prints full treatment details using System.out.println.
+     */
+    public void printDetails() {
+        System.out.println("-------------------------------------------");
+        System.out.println("Treatment ID     : " + treatmentId);
+        System.out.println("Treatment Name   : " + treatmentName);
+        System.out.println("Treatment Cost   : LKR " + treatmentCost);
+        System.out.println("Consultation Fee : LKR " + consultationFee);
+        System.out.println("Total Estimate   : LKR " + getTotalEstimate());
+        System.out.println("-------------------------------------------");
     }
 
     @Override
