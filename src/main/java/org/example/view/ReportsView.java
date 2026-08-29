@@ -36,12 +36,12 @@ public class ReportsView extends JFrame {
     private final ReportDAO reportDAO;
     private final AppointmentDAO appointmentDAO;
 
+
     private JTabbedPane tabbedPane;
     private JTable tblDoctorWorkload;
     private JTable tblTreatmentSummary;
     private JLabel lblFinancialSummary;
 
-    private JButton btnPrintReport;
     private JButton btnRefresh;
     private JButton btnBack;
 
@@ -94,18 +94,15 @@ public class ReportsView extends JFrame {
         // ------------------ Bottom Buttons ------------------
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 12));
 
-        btnPrintReport = UIHelper.createPrimaryButton("Print Current Report", new Dimension(180, 36));
         btnRefresh = UIHelper.createSecondaryButton("Refresh Data", new Dimension(130, 36));
         btnBack = UIHelper.createSecondaryButton("Back to Dashboard", new Dimension(150, 36));
 
-        buttonPanel.add(btnPrintReport);
         buttonPanel.add(btnRefresh);
         buttonPanel.add(btnBack);
         add(buttonPanel, BorderLayout.SOUTH);
 
         // Listeners
         btnRefresh.addActionListener(e -> loadAllReports());
-        btnPrintReport.addActionListener(e -> printCurrentTab());
         btnBack.addActionListener(e -> {
             UIHelper.navigate(this, new MainMenuView(currentUser));
         });
@@ -220,21 +217,6 @@ public class ReportsView extends JFrame {
                 String.format("%,.2f", (Double) row.get("totalConsultFee")),
                 String.format("%,.2f", (Double) row.get("grossTotal"))
             });
-        }
-    }
-
-    private void printCurrentTab() {
-        int selectedIndex = tabbedPane.getSelectedIndex();
-        try {
-            if (selectedIndex == 1) {
-                tblDoctorWorkload.print(JTable.PrintMode.FIT_WIDTH, new java.text.MessageFormat("Sunrise Dental - Doctor Workload Report"), new java.text.MessageFormat("Page {0}"));
-            } else if (selectedIndex == 2) {
-                tblTreatmentSummary.print(JTable.PrintMode.FIT_WIDTH, new java.text.MessageFormat("Sunrise Dental - Treatment Popularity Report"), new java.text.MessageFormat("Page {0}"));
-            } else {
-                JOptionPane.showMessageDialog(this, "To print detailed tables, please switch to the Workload or Treatment tab.", "Print Notice", JOptionPane.INFORMATION_MESSAGE);
-            }
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Print Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 }

@@ -1,7 +1,6 @@
 package org.example.view;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -9,16 +8,15 @@ import java.awt.Frame;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JDialog;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
-import javax.swing.SwingConstants;
+import org.example.view.components.UIHelper;
 
 /**
  * HelpView - System User Manual and Help Screen
  * 
- * Provides step-by-step guidance for new clinic staff on how to use every feature.
+ * Provides comprehensive guidance for clinic staff on all system modules.
  */
 public class HelpView extends JDialog {
 
@@ -28,25 +26,16 @@ public class HelpView extends JDialog {
     }
 
     private void initializeUI() {
-        setSize(650, 550);
+        setSize(780, 660);
         setLocationRelativeTo(getParent());
         setLayout(new BorderLayout(10, 10));
 
-        // ------------------ Header Panel ------------------
-        JPanel headerPanel = new JPanel(new BorderLayout());
-        headerPanel.setBackground(new Color(24, 90, 157));
-        headerPanel.setBorder(BorderFactory.createEmptyBorder(12, 15, 12, 15));
-
-        JLabel lblTitle = new JLabel("SYSTEM USER GUIDE & HELP", SwingConstants.CENTER);
-        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        lblTitle.setForeground(Color.WHITE);
-
-        JLabel lblSubtitle = new JLabel("Instructions for Clinic Reception & Staff", SwingConstants.CENTER);
-        lblSubtitle.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        lblSubtitle.setForeground(new Color(220, 235, 252));
-
-        headerPanel.add(lblTitle, BorderLayout.NORTH);
-        headerPanel.add(lblSubtitle, BorderLayout.SOUTH);
+        // ------------------ Top Header Banner ------------------
+        JPanel headerPanel = UIHelper.createHeaderBanner(
+            "SYSTEM USER GUIDE & OPERATIONAL MANUAL",
+            "Sunrise Dental Clinic - Staff Operational Instructions & Feature Walkthrough",
+            null
+        );
         add(headerPanel, BorderLayout.NORTH);
 
         // ------------------ Help Text Content ------------------
@@ -57,38 +46,50 @@ public class HelpView extends JDialog {
 
         String helpHtml = 
             "<html>" +
-            "<body style='font-family: Segoe UI, sans-serif; font-size: 11pt; padding: 10px; color: #222222;'>" +
+            "<body style='font-family: Segoe UI, sans-serif; font-size: 11pt; padding: 12px; color: #222222;'>" +
             
-            "<h3 style='color: #185a9d; margin-top: 0;'>1. System Login & Authentication</h3>" +
-            "<p>• Enter your authorized staff username and password.<br>" +
-            "• Default credentials provided:<br>" +
-            "&nbsp;&nbsp;<b>Admin:</b> Username: <code>admin</code> | Password: <code>admin123</code><br>" +
-            "&nbsp;&nbsp;<b>Staff:</b> Username: <code>staff</code> | Password: <code>staff123</code><br>" +
-            "• Make sure WAMP Server is running with green icon before logging in.</p>" +
+            "<h3 style='color: #185a9d; margin-top: 0;'>1. System Roles & Access Control</h3>" +
+            "<p>• <b>Admin:</b> Full administrative authority. Can create and manage staff accounts, book appointments, generate bills, access clinic revenue reports, and manage all patient records.<br>" +
+            "• <b>Receptionist:</b> Front desk operations. Can book appointments (for new or existing patients), view confirmed schedules, look up patient medical history, and calculate & print bills.<br>" +
+            "• <b>Doctor:</b> Clinical practice portal. Can view their dedicated patient schedule ('Today', 'Tomorrow', 'Next 7 Days', or custom date picker), inspect patient medical histories, and add/edit clinical diagnosis notes.<br>" +
+            "• <b>Default Credentials:</b><br>" +
+            "&nbsp;&nbsp;• Admin: <code>admin</code> / <code>admin123</code><br>" +
+            "&nbsp;&nbsp;• Receptionist: <code>receptionist1</code> / <code>receptionist123</code><br>" +
+            "&nbsp;&nbsp;• Doctor: <code>doctor1</code> / <code>doctor123</code> | <code>doctor2</code> / <code>doctor123</code><br>" +
+            "• <i>Staff Registration:</i> Securely managed exclusively by Admin via the <b>'Manage Staff Accounts'</b> menu.</p>" +
 
-            "<h3 style='color: #185a9d;'>2. Registering a New Appointment</h3>" +
-            "<p>• The system automatically generates a unique <b>Appointment Number</b> (e.g. 1001, 1002).<br>" +
-            "• Fill in the patient's Full Name, Residential Address, and Contact Number.<br>" +
-            "• Select the <b>Assigned Dentist</b> and <b>Treatment Type</b> from the dropdown menus.<br>" +
-            "• Choose the Appointment Date (format: <code>YYYY-MM-DD</code>) and convenient Time Slot.<br>" +
-            "• Click <b>'Save & Book Appointment'</b>. All fields are mandatory.</p>" +
+            "<h3 style='color: #185a9d;'>2. Adding New Appointments (New vs. Registered Patients)</h3>" +
+            "<p>• Select either <b>'Registered / Old Patient'</b> or <b>'New Patient'</b> mode:<br>" +
+            "&nbsp;&nbsp;• <i>Registered Patient:</i> Select an existing patient from the dropdown list to automatically auto-fill their demographic and contact details.<br>" +
+            "&nbsp;&nbsp;• <i>New Patient:</i> Input patient name, address, contact, age, and medical history.<br>" +
+            "• <b>Assigned Doctor:</b> Select an active doctor from the clinic's registered medical team.<br>" +
+            "• <b>Patient Age (Starting from 1 Month):</b> Specify age starting at 1 Month (e.g. 1 Month, 6 Months, 2 Years, 35 Years) using the unit selector.<br>" +
+            "• <b>Interactive Calendar Date Picker:</b> Click the <b>'📅 Calendar'</b> button next to the date field to open a visual calendar picker with month/year navigation.<br>" +
+            "• <b>Double-Booking Prevention:</b> The system verifies doctor availability and prevents double booking for the same time slot.<br>" +
+            "• <b>Clear Fee Breakdown:</b> View structured rows for Consultation Fee, Procedure Cost, and Total Estimate.</p>" +
 
-            "<h3 style='color: #185a9d;'>3. Searching / Viewing Appointment Records</h3>" +
-            "<p>• Enter the specific <b>Appointment Number</b> in the search bar and click <b>'Search'</b>.<br>" +
-            "• View full details including Patient Name, Address, Contact, Doctor, Treatment, and Current Status.<br>" +
-            "• You can directly click <b>'Calculate / Print Bill'</b> to jump to invoicing for that patient.</p>" +
+            "<h3 style='color: #185a9d;'>3. Doctor Schedule & Clinical Queue</h3>" +
+            "<p>• Doctors access their schedule directly from the <b>'My Patient Schedule & Clinical Queue'</b> dashboard tile or menu.<br>" +
+            "• <b>Quick Date Navigation:</b> Easily switch between <b>'Today'</b>, <b>'Tomorrow'</b>, <b>'Next 7 Days'</b>, or pick any specific calendar date.<br>" +
+            "• <b>Clinical Diagnosis Notes:</b> Click <b>'📝 Add Diagnosis / Treatment Notes'</b> to document clinical findings, prescriptions, and procedures for any patient visit.</p>" +
 
-            "<h3 style='color: #185a9d;'>4. Calculating and Printing Bills</h3>" +
-            "<p>• Load the appointment by entering the Appointment Number.<br>" +
-            "• The system calculates: <b>Total Bill = Doctor Consultation Fee + Treatment Procedure Cost</b>.<br>" +
-            "• Click <b>'Generate Receipt'</b> to format the official patient invoice.<br>" +
-            "• Click <b>'Save Bill to DB'</b> to record the billing status in the database.<br>" +
-            "• Click <b>'Print / Save as PDF'</b> to send the receipt directly to your printer or export as PDF.</p>" +
+            "<h3 style='color: #185a9d;'>4. Patient Medical & Appointment History</h3>" +
+            "<p>• Open <b>'Patient Search & Medical History'</b> to inspect a patient's complete journey.<br>" +
+            "• Search by Patient Name, Phone Number, Patient ID, or Appointment Number.<br>" +
+            "• View demographic details, total appointments attended, total billing spent, clinical doctor notes, and full chronological appointment timeline.<br>" +
+            "• Supports patients having multiple (2 or more) appointments over time.</p>" +
 
-            "<h3 style='color: #185a9d;'>5. Troubleshooting & Support</h3>" +
-            "<p>• <b>Database Error:</b> Ensure WAMP is active and phpMyAdmin has imported <code>database.sql</code> (Database name: <code>sunrise_dental_db</code>).<br>" +
-            "• <b>Port Conflict:</b> Ensure MySQL port 3306 is not blocked.<br>" +
-            "• Contact Sunrise Dental IT Support: <b>+94 11 234 5678</b>.</p>" +
+            "<h3 style='color: #185a9d;'>5. Calculating and Printing Bills</h3>" +
+            "<p>• Enter Patient Name or Appointment Number to load appointment records.<br>" +
+            "• Calculates: <b>Total Bill = Doctor Consultation Fee + Treatment Procedure Cost</b>.<br>" +
+            "• Patient Age is automatically displayed and printed on the official invoice.<br>" +
+            "• Click <b>'Patient History'</b> to review full patient records and past visits.<br>" +
+            "• Click <b>'Save Bill to DB'</b> to record payment as Billed in the database.<br>" +
+            "• Click <b>'Print / Save as PDF'</b> to print the official bill or export as PDF.</p>" +
+
+            "<h3 style='color: #185a9d;'>6. Management Analytics & Decision Making (Admin Only)</h3>" +
+            "<p>• Open <b>'Clinic Analytics & Financial Reports'</b> from the Admin dashboard or top menu bar.<br>" +
+            "• View Overall Revenue Summary (including Scheduled, Billed, and Cancelled counts), Doctor Workload, and Treatment popularity statistics on screen.</p>" +
 
             "</body>" +
             "</html>";
@@ -102,12 +103,11 @@ public class HelpView extends JDialog {
 
         // ------------------ Footer Button ------------------
         JPanel footerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        JButton btnClose = new JButton("Close Help");
-        btnClose.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        btnClose.setPreferredSize(new Dimension(120, 32));
+        JButton btnClose = UIHelper.createPrimaryButton("Close Help Guide", new Dimension(160, 34));
         btnClose.addActionListener(e -> dispose());
         footerPanel.add(btnClose);
 
         add(footerPanel, BorderLayout.SOUTH);
     }
 }
+

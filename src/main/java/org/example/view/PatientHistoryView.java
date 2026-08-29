@@ -48,6 +48,7 @@ public class PatientHistoryView extends JFrame {
     private final AppointmentService appointmentService;
     private Patient currentPatient;
 
+
     // Search Controls
     private JTextField txtSearch;
     private JComboBox<Patient> cmbQuickSelect;
@@ -72,8 +73,6 @@ public class PatientHistoryView extends JFrame {
     // Action Buttons
     private JButton btnBookNewAppointment;
     private JButton btnBillSelected;
-    private JButton btnCancelSelected;
-    private JButton btnPrintHistory;
     private JButton btnBack;
 
     public PatientHistoryView(User user) {
@@ -178,7 +177,7 @@ public class PatientHistoryView extends JFrame {
             BorderFactory.createEmptyBorder(6, 6, 6, 6)
         ));
 
-        String[] cols = {"Appt #", "Date", "Time", "Dentist", "Treatment Procedure", "Total Bill (LKR)", "Status", "Cancellation Reason"};
+        String[] cols = {"Appt #", "Date", "Time", "Dentist", "Treatment Procedure", "Total Bill (LKR)", "Status", "Clinical Notes", "Cancellation Reason"};
         historyModel = new DefaultTableModel(cols, 0) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
         };
@@ -193,11 +192,12 @@ public class PatientHistoryView extends JFrame {
         tblHistory.getColumnModel().getColumn(0).setPreferredWidth(55);
         tblHistory.getColumnModel().getColumn(1).setPreferredWidth(80);
         tblHistory.getColumnModel().getColumn(2).setPreferredWidth(70);
-        tblHistory.getColumnModel().getColumn(3).setPreferredWidth(140);
-        tblHistory.getColumnModel().getColumn(4).setPreferredWidth(140);
+        tblHistory.getColumnModel().getColumn(3).setPreferredWidth(130);
+        tblHistory.getColumnModel().getColumn(4).setPreferredWidth(130);
         tblHistory.getColumnModel().getColumn(5).setPreferredWidth(95);
         tblHistory.getColumnModel().getColumn(6).setPreferredWidth(75);
-        tblHistory.getColumnModel().getColumn(7).setPreferredWidth(120);
+        tblHistory.getColumnModel().getColumn(7).setPreferredWidth(140);
+        tblHistory.getColumnModel().getColumn(8).setPreferredWidth(110);
 
         // Status Renderer
         tblHistory.getColumnModel().getColumn(6).setCellRenderer(new DefaultTableCellRenderer() {
@@ -232,20 +232,28 @@ public class PatientHistoryView extends JFrame {
         // ------------------ Bottom Action Buttons ------------------
         JPanel footerButtons = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 12));
 
+        String role = (currentUser != null && currentUser.getRole() != null) ? currentUser.getRole() : "Receptionist";
+        boolean isDoctor = "Doctor".equalsIgnoreCase(role);
+
+        JButton btnAddNotes = UIHelper.createPrimaryButton("📝 Add / Edit Clinical Notes", new Dimension(220, 36));
         btnBookNewAppointment = UIHelper.createPrimaryButton("+ Add New Appointment for Patient", new Dimension(265, 36));
         btnBillSelected = UIHelper.createSuccessButton("Calculate / Print Bill", new Dimension(170, 36));
-        btnCancelSelected = UIHelper.createDangerButton("Cancel Appointment", new Dimension(160, 36));
-        btnPrintHistory = UIHelper.createSecondaryButton("Print Patient Record", new Dimension(155, 36));
         btnBack = UIHelper.createSecondaryButton("Back to Dashboard", new Dimension(145, 36));
 
-        footerButtons.add(btnBookNewAppointment);
-        footerButtons.add(btnBillSelected);
-        footerButtons.add(btnCancelSelected);
-        footerButtons.add(btnPrintHistory);
-        footerButtons.add(btnBack);
+        if (isDoctor) {
+            footerButtons.add(btnAddNotes);
+            footerButtons.add(btnBack);
+        } else {
+            footerButtons.add(btnBookNewAppointment);
+            footerButtons.add(btnBillSelected);
+            footerButtons.add(btnAddNotes);
+            footerButtons.add(btnBack);
+        }
         add(footerButtons, BorderLayout.SOUTH);
 
         // ------------------ Event Listeners ------------------
+        btnAddNotes.addActionListener(e -> openNotesDialogForSelection());
+
         cmbQuickSelect.addActionListener(e -> {
             Patient p = (Patient) cmbQuickSelect.getSelectedItem();
             if (p != null) {
@@ -277,10 +285,6 @@ public class PatientHistoryView extends JFrame {
             int apptNo = (int) historyModel.getValueAt(selectedRow, 0);
             UIHelper.navigate(this, new BillView(currentUser, apptNo));
         });
-
-        btnCancelSelected.addActionListener(e -> cancelSelectedAppointment());
-
-        btnPrintHistory.addActionListener(e -> printHistory());
 
         btnBack.addActionListener(e -> {
             UIHelper.navigate(this, new MainMenuView(currentUser));
@@ -430,80 +434,103 @@ public class PatientHistoryView extends JFrame {
                     a.getTreatmentType(),
                     String.format("%,.2f", a.getTotalBill()),
                     a.getStatus(),
+                    a.getDoctorNotes() != null ? a.getDoctorNotes() : "-",
                     a.getCancellationReason() != null ? a.getCancellationReason() : "-"
                 });
             }
             lblTotalSpentVal.setText(String.format("LKR %,.2f", totalSpent));
         } catch (SQLException ex) {
-            System.err.println("Error loading patient history: " + ex.getMessage());
+            System.out.println("Error loading patient history: " + ex.getMessage());
         }
     }
 
-    private void cancelSelectedAppointment() {
+    private void openNotesDialogForSelection() {
         int selectedRow = tblHistory.getSelectedRow();
         if (selectedRow == -1) {
-            JOptionPane.showMessageDialog(this, "Please select an appointment from the table to cancel.", "No Selection", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Please select an appointment from the history table to view or edit clinical diagnosis notes.", "No Selection", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         int apptNo = (int) historyModel.getValueAt(selectedRow, 0);
-        String currentStatus = (String) historyModel.getValueAt(selectedRow, 6);
+        String procedure = (String) historyModel.getValueAt(selectedRow, 4);
+        Object currentNotesObj = historyModel.getValueAt(selectedRow, 7);
+        String existingNotes = (currentNotesObj != null && !"-".equals(currentNotesObj)) ? String.valueOf(currentNotesObj) : "";
 
-        if ("Cancelled".equalsIgnoreCase(currentStatus)) {
-            JOptionPane.showMessageDialog(this, "This appointment is already cancelled.", "Already Cancelled", JOptionPane.INFORMATION_MESSAGE);
-            return;
-        }
+        javax.swing.JDialog dialog = new javax.swing.JDialog(this, "Add / Edit Clinical Diagnosis Notes - Appt #" + apptNo, true);
+        dialog.setSize(520, 380);
+        dialog.setLocationRelativeTo(this);
+        dialog.setLayout(new BorderLayout(10, 10));
 
-        int choice = JOptionPane.showConfirmDialog(
-            this,
-            "Are you sure you want to CANCEL Appointment #" + apptNo + "?\n\n" +
-            "This will free up the dentist's time slot immediately for new bookings.",
-            "Confirm Cancellation",
-            JOptionPane.YES_NO_OPTION,
-            JOptionPane.WARNING_MESSAGE
-        );
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        formPanel.setBorder(BorderFactory.createEmptyBorder(15, 20, 10, 20));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        if (choice == JOptionPane.YES_OPTION) {
-            String reason = JOptionPane.showInputDialog(
-                this,
-                "Optional: Enter cancellation reason (e.g. Patient requested reschedule):",
-                "Cancellation Reason",
-                JOptionPane.PLAIN_MESSAGE
-            );
+        int r = 0;
+        gbc.gridx = 0; gbc.gridy = r; gbc.weightx = 0.3;
+        JLabel lblAppt = new JLabel("Appointment:");
+        lblAppt.setFont(UIHelper.FONT_BOLD);
+        formPanel.add(lblAppt, gbc);
 
+        gbc.gridx = 1; gbc.weightx = 0.7;
+        formPanel.add(new JLabel("#" + apptNo + " - " + (currentPatient != null ? currentPatient.getPatientName() : "") + " (" + procedure + ")"), gbc);
+        r++;
+
+        gbc.gridx = 0; gbc.gridy = r;
+        JLabel lblNotes = new JLabel("Clinical Notes *:");
+        lblNotes.setFont(UIHelper.FONT_BOLD);
+        formPanel.add(lblNotes, gbc);
+
+        gbc.gridx = 1;
+        javax.swing.JTextArea txtNotesArea = new javax.swing.JTextArea(existingNotes, 8, 25);
+        txtNotesArea.setFont(UIHelper.FONT_REGULAR);
+        txtNotesArea.setLineWrap(true);
+        txtNotesArea.setWrapStyleWord(true);
+        javax.swing.JScrollPane areaScroll = new javax.swing.JScrollPane(txtNotesArea);
+        formPanel.add(areaScroll, gbc);
+        r++;
+
+        dialog.add(formPanel, BorderLayout.CENTER);
+
+        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
+        JButton btnSave = UIHelper.createPrimaryButton("Save Notes", new Dimension(120, 32));
+        JButton btnCancel = UIHelper.createSecondaryButton("Cancel", new Dimension(90, 32));
+
+        btnSave.addActionListener(e -> {
+            String newNotes = txtNotesArea.getText().trim();
+            if (newNotes.isEmpty()) {
+                JOptionPane.showMessageDialog(dialog, "Please enter diagnosis or treatment notes.", "Input Required", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
             try {
-                boolean success = appointmentService.cancelAppointment(apptNo, reason);
+                boolean success = appointmentService.saveDoctorNotes(apptNo, newNotes);
                 if (success) {
-                    JOptionPane.showMessageDialog(this, "Appointment #" + apptNo + " has been cancelled.", "Success", JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.showMessageDialog(dialog, "Clinical notes successfully saved for Appointment #" + apptNo + "!", "Notes Saved", JOptionPane.INFORMATION_MESSAGE);
+                    dialog.dispose();
                     if (currentPatient != null) {
                         displayPatient(currentPatient);
                     }
+                } else {
+                    JOptionPane.showMessageDialog(dialog, "Failed to save notes. Please try again.", "Error", JOptionPane.ERROR_MESSAGE);
                 }
             } catch (SQLException ex) {
-                JOptionPane.showMessageDialog(this, "Database error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(dialog, "Database error: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
             }
-        }
+        });
+
+        btnCancel.addActionListener(e -> dialog.dispose());
+
+        btnPanel.add(btnSave);
+        btnPanel.add(btnCancel);
+        dialog.add(btnPanel, BorderLayout.SOUTH);
+
+        dialog.setVisible(true);
     }
 
     private void clearSearch() {
         txtSearch.setText("");
         loadPatientDropdown();
-    }
-
-    private void printHistory() {
-        if (currentPatient == null) return;
-        try {
-            boolean complete = tblHistory.print(
-                JTable.PrintMode.FIT_WIDTH,
-                new java.text.MessageFormat("Sunrise Dental Clinic - Patient Record: " + currentPatient.getPatientName() + " (Age: " + currentPatient.getAge() + ")"),
-                new java.text.MessageFormat("Page {0}")
-            );
-            if (complete) {
-                JOptionPane.showMessageDialog(this, "Patient record printed successfully.", "Print Job Done", JOptionPane.INFORMATION_MESSAGE);
-            }
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Print Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-        }
     }
 }
 

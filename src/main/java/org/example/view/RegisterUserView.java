@@ -29,6 +29,9 @@ import org.example.view.components.UIHelper;
  */
 public class RegisterUserView extends JFrame {
 
+    private final User currentUser;
+    private final UserDAO userDAO;
+
     private JTextField txtFullName;
     private JTextField txtUsername;
     private JPasswordField txtPassword;
@@ -38,16 +41,19 @@ public class RegisterUserView extends JFrame {
     private JButton btnRegister;
     private JButton btnCancel;
 
-    private final UserDAO userDAO;
-
     public RegisterUserView() {
+        this(null);
+    }
+
+    public RegisterUserView(User currentUser) {
+        this.currentUser = currentUser;
         this.userDAO = new UserDAO();
         initializeUI();
     }
 
     private void initializeUI() {
-        setTitle("Sunrise Dental Clinic - Register New User");
-        setSize(560, 520);
+        setTitle("Sunrise Dental Clinic - Register Staff Account");
+        setSize(560, 530);
         setMinimumSize(new Dimension(500, 460));
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -56,9 +62,9 @@ public class RegisterUserView extends JFrame {
 
         // ------------------ Top Header Banner ------------------
         JPanel headerPanel = UIHelper.createHeaderBanner(
-            "STAFF ACCOUNT REGISTRATION",
-            "Create a new login account for Sunrise Dental Clinic staff",
-            null
+            "MANAGE & REGISTER STAFF ACCOUNTS",
+            "Create authorized login credentials for Receptionists, Doctors, or Administrators",
+            currentUser
         );
         add(headerPanel, BorderLayout.NORTH);
 
@@ -97,6 +103,7 @@ public class RegisterUserView extends JFrame {
 
         // Username
         gbc.gridx = 0; gbc.gridy = row;
+
         JLabel lblUser = new JLabel("Username *:");
         lblUser.setFont(UIHelper.FONT_BOLD);
         formPanel.add(lblUser, gbc);
@@ -114,7 +121,7 @@ public class RegisterUserView extends JFrame {
         formPanel.add(lblRole, gbc);
 
         gbc.gridx = 1;
-        String[] roles = {"Receptionist", "Staff", "Admin"};
+        String[] roles = {"Receptionist", "Doctor", "Admin"};
         cmbRole = new JComboBox<>(roles);
         cmbRole.setFont(UIHelper.FONT_REGULAR);
         formPanel.add(cmbRole, gbc);
@@ -151,7 +158,7 @@ public class RegisterUserView extends JFrame {
         buttonPanel.setOpaque(false);
 
         btnRegister = UIHelper.createPrimaryButton("Create Account", new Dimension(150, 36));
-        btnCancel = UIHelper.createSecondaryButton("Back to Login", new Dimension(130, 36));
+        btnCancel = UIHelper.createSecondaryButton(currentUser != null ? "Back to Dashboard" : "Back to Login", new Dimension(150, 36));
 
         buttonPanel.add(btnRegister);
         buttonPanel.add(btnCancel);
@@ -164,7 +171,11 @@ public class RegisterUserView extends JFrame {
         btnRegister.addActionListener(e -> performRegistration());
 
         btnCancel.addActionListener(e -> {
-            UIHelper.navigate(this, new LoginView());
+            if (currentUser != null) {
+                UIHelper.navigate(this, new MainMenuView(currentUser));
+            } else {
+                UIHelper.navigate(this, new LoginView());
+            }
         });
     }
 
@@ -232,20 +243,32 @@ public class RegisterUserView extends JFrame {
             int newId = userDAO.registerUser(newUser);
 
             if (newId > 0) {
+                System.out.println("[Auth] New user registered successfully:");
+                newUser.printDetails();
+
                 JOptionPane.showMessageDialog(
                     this,
-                    "Account Successfully Created!\n\n" +
-                    "Username: " + username + "\n" +
-                    "Name: " + fullName + " (" + role + ")\n\n" +
-                    "You can now log in with your credentials.",
+                    "Staff Account Successfully Created!\n\n" +
+                    "Username : " + username + "\n" +
+                    "Full Name: " + fullName + "\n" +
+                    "Role     : " + role,
                     "Registration Successful",
                     JOptionPane.INFORMATION_MESSAGE
                 );
 
-                // Open LoginView with prefilled username
-                LoginView loginView = new LoginView();
-                loginView.setPrefilledUsername(username);
-                UIHelper.navigate(this, loginView);
+                if (currentUser != null) {
+                    // Clear form for potential next registration
+                    txtFullName.setText("");
+                    txtUsername.setText("");
+                    txtPassword.setText("");
+                    txtConfirmPassword.setText("");
+                    if (cmbRole.getItemCount() > 0) cmbRole.setSelectedIndex(0);
+                    txtFullName.requestFocus();
+                } else {
+                    LoginView loginView = new LoginView();
+                    loginView.setPrefilledUsername(username);
+                    UIHelper.navigate(this, loginView);
+                }
             } else {
                 JOptionPane.showMessageDialog(this, "Could not register account. Please try again.", "Error", JOptionPane.ERROR_MESSAGE);
             }

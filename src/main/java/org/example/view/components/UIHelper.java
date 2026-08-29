@@ -23,6 +23,7 @@ import org.example.model.User;
  * Provides consistent, high-contrast, beautiful Swing UI components
  * that eliminate Windows Look & Feel button rendering bugs (e.g. invisible white-on-white text).
  */
+
 public class UIHelper {
 
     // Primary Brand Palette

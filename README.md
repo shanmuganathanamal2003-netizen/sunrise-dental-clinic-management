@@ -1,147 +1,108 @@
 # Sunrise Dental Clinic - Appointment & Patient Management System
 
-A simple, robust, and clean Java Desktop Application built for **Sunrise Dental Clinic** (Colombo) to manage patient appointments, search records, and calculate & print patient bills.
+An advanced, user-friendly, and menu-driven Java Desktop Application developed for **Sunrise Dental Clinic (Colombo)**. The system computerizes appointment scheduling, patient record tracking, fee calculations, and receipt generation while providing management analytics for executive decision-making.
 
 ---
 
-## 📋 System Features
+## 🌟 Upgraded Key Features
 
-1. **User Authentication (Login)**:
-   - Secure login for authorized receptionists and administrators.
-   - Credentials checked directly against the MySQL `users` table.
-   - Input validation prevents blank submissions and displays friendly error dialogs.
+1. **User Authentication & New Staff Registration**:
+   - Secure login for authorized staff and receptionists.
+   - **Register as New User**: New staff can register directly from the login screen with custom role assignment (Receptionist, Staff, Admin, Dental Assistant).
+   - Pre-seeded default logins: `admin` / `admin123` or `staff` / `staff123`.
 
-2. **Register New Appointment**:
-   - Auto-generates a unique Appointment Number.
-   - Form inputs: Patient Name, Address, Contact Number, Assigned Dentist, Treatment Type, Appointment Date, and Time slot.
-   - Live fee estimation display.
-   - Mandatory field validation ensures no empty records are submitted.
+2. **Interactive Live Dashboard & Top Menu Bar (`JMenuBar`)**:
+   - Standard top navigation menu (`File`, `Appointments`, `Billing`, `Reports`, `Help`) accessible across all windows.
+   - Live metric cards: Total Appointments, Today's Patients, Scheduled / Pending, and Total Paid Revenue (LKR).
+   - Quick overview table of recent appointments with direct navigation.
 
-3. **Search / View Appointment Details**:
-   - Lookup any appointment by Appointment Number.
-   - Clean display card showing all patient details, doctor, treatment, date/time, and billing status.
-   - Direct button to proceed to billing.
+3. **Register New Appointment with Double-Booking Prevention**:
+   - Auto-generated Appointment Number.
+   - Captures Patient Full Name, Contact Number, Address, Assigned Dentist, Treatment Procedure, Date, and Time Slot.
+   - **Double-Booking Prevention**: Prevents duplicate scheduling if a doctor is already booked for that date/time.
+   - **Structured Multi-Row Fee Breakdown**: Dedicated, high-visibility rows for Doctor Consultation Fee, Treatment Procedure Cost, and Estimated Total Amount.
 
-4. **Calculate and Print Patient Bill**:
-   - Computes: `Total Bill = Doctor Consultation Fee + Treatment Procedure Cost`.
-   - Generates a neat, formatted dental clinic receipt.
-   - Saves updated billing status to MySQL database.
-   - **Print / PDF button**: Uses Java Swing's native printing system (`print()`) allowing direct hardware printing or export via *Microsoft Print to PDF*.
+4. **All Confirmed Appointments Table (`AppointmentListView`)**:
+   - Interactive `JTable` listing all confirmed appointments with status badges.
+   - **Instant Search by Patient Name**, Appointment Number, Phone Number, or Doctor.
+   - Status filtering (`All`, `Scheduled`, `Billed`).
+   - Double-click any row to open billing or receipt generation directly.
+   - Direct table printing for clinic records.
 
-5. **System Help & User Guide**:
-   - Built-in staff user manual explaining every feature and step.
+5. **Search / View Appointment by Patient Name or ID (`SearchAppointmentView`)**:
+   - Search by Patient Name or Appointment Number.
+   - Visual detail card displaying patient info, doctor, procedure, date/time, and billing status.
+   - One-click navigation to calculate and print bill.
 
-6. **Safe Exit & Logout**:
-   - Confirmation prompts to safely logout or exit.
+6. **Calculate and Print Patient Bill (`BillView`)**:
+   - Loads appointment by Patient Name or ID.
+   - Calculates: `Total Bill = Doctor Consultation Fee + Treatment Procedure Cost`.
+   - Generates formatted dental clinic receipt with custom receipt number (`REC-XXXX`).
+   - Saves billing details to MySQL database (marks as `Billed`).
+   - **Print / PDF**: Native Java print dialog allowing direct hardware printing or *Microsoft Print to PDF*.
+
+7. **Executive Decision-Making Reports (`ReportsView`)**:
+   - **Financial Revenue Summary**: Total clinic earnings, consultation fees vs procedure costs.
+   - **Doctor Workload Analysis**: Total appointments and revenue generated per dentist.
+   - **Treatment Popularity Statistics**: Most requested dental procedures.
+   - Printable report sheets.
+
+8. **Help & System Documentation (`HelpView`)**:
+   - Built-in operational manual explaining all features step-by-step.
 
 ---
 
-## 🛠️ Technology Stack
+## 🛠️ Technology Stack & Design Patterns
 
 - **Language & Runtime**: Java JDK 17 (or latest LTS)
-- **UI Framework**: Java Swing (Native OS Look & Feel)
-- **Database**: MySQL (running locally via WAMP / XAMPP on port `3306`)
-- **Database Driver**: JDBC with MySQL Connector/J (`com.mysql.cj.jdbc.Driver`)
-- **Build Tool**: Apache Maven (`pom.xml`)
-- **IDE**: IntelliJ IDEA (Community Edition or Ultimate)
-- **Version Control**: Git
-
----
-
-## 🏗️ Project Architecture (Layered / Tiered Design)
-
-The project follows a standard 3-tier / layered architecture:
-
-```
-sunrise-dental-clinic-management/
-├── pom.xml                                 # Maven dependencies and build configuration
-├── database.sql                            # SQL script to create database and sample records
-├── README.md                               # Setup and execution guide
-├── .gitignore                              # Git ignore rules
-└── src/
-    └── main/
-        └── java/
-            └── org/
-                └── example/
-                    ├── Main.java                    # Application Entry Point
-                    ├── db/
-                    │   └── DBConnection.java        # JDBC Singleton Connection Manager
-                    ├── model/
-                    │   ├── User.java                # Staff/Admin user entity
-                    │   ├── Appointment.java         # Patient appointment entity
-                    │   └── Treatment.java           # Dental treatment & pricing entity
-                    ├── dao/
-                    │   ├── UserDAO.java             # User login queries
-                    │   ├── AppointmentDAO.java      # Appointment CRUD queries
-                    │   └── TreatmentDAO.java        # Treatment list queries
-                    └── view/
-                        ├── LoginView.java           # 1. Login Screen
-                        ├── MainMenuView.java        # Dashboard Navigation Screen
-                        ├── RegisterAppointmentView.java # 2. Book Appointment Screen
-                        ├── SearchAppointmentView.java   # 3. Search Records Screen
-                        ├── BillView.java            # 4. Calculate & Print Bill Screen
-                        └── HelpView.java            # 5. User Manual / Help Dialog
-```
+- **GUI Framework**: Java Swing (Native System Look & Feel)
+- **Database**: MySQL via WAMP Server (port `3306`)
+- **Persistence Driver**: JDBC with MySQL Connector/J (`8.3.0`)
+- **Build System**: Apache Maven (`pom.xml`)
+- **Design Patterns Implemented**:
+  - **Singleton Pattern**: Database connection manager ([`DBConnection.java`](src/main/java/org/example/db/DBConnection.java)).
+  - **DAO (Data Access Object) Pattern**: [`UserDAO`](src/main/java/org/example/dao/UserDAO.java), [`AppointmentDAO`](src/main/java/org/example/dao/AppointmentDAO.java), [`TreatmentDAO`](src/main/java/org/example/dao/TreatmentDAO.java), [`ReportDAO`](src/main/java/org/example/dao/ReportDAO.java).
+  - **Service / Business Logic Layer**: [`AppointmentService`](src/main/java/org/example/service/AppointmentService.java), [`BillingService`](src/main/java/org/example/service/BillingService.java).
+  - **MVC / Tiered Architecture**: Clear separation between `model`, `dao`, `service`, and `view`.
 
 ---
 
 ## 🚀 Setup & Execution Guide
 
-### Step 1: Start WAMP / MySQL Server
-1. Launch **WAMP Server** (or XAMPP) on your computer.
-2. Wait until the WAMP icon in the system tray turns **Green** (indicating all services including MySQL on port `3306` are active).
+### Step 1: Start WAMP Server
+1. Launch **WAMP Server** and ensure the tray icon is **Green** (MySQL active on port `3306`).
+2. *(The application includes an auto-initializer that automatically creates the database and tables if missing).*
 
 ---
 
-### Step 2: Import the Database (`database.sql`)
-1. Open your web browser and navigate to **phpMyAdmin**:
-   ```
-   http://localhost/phpmyadmin
-   ```
-2. Log in (default username is `root`, password is empty ` `).
-3. Click on the **Import** tab at the top.
-4. Click **Choose File** and select the `database.sql` file located in this project folder.
-5. Click **Go** / **Import** at the bottom of the page.
-   *(This will create the `sunrise_dental_db` database, create all tables, and insert sample users and dental treatments).*
-
----
-
-### Step 3: Open Project in IntelliJ IDEA
+### Step 2: Open in IntelliJ IDEA
 1. Open **IntelliJ IDEA Community Edition**.
-2. Click **Open** (or **File -> Open...**).
-3. Select the folder:
-   `sunrise-dental-clinic-management`
-4. When prompted, select **"Trust Project"** and open as a **Maven Project**.
-5. IntelliJ will automatically read `pom.xml` and download the `mysql-connector-j` dependency.
+2. Click **File -> Open...** and select the `sunrise-dental-clinic-management` folder.
+3. Open as a **Maven Project**.
 
 ---
 
-### Step 4: Run the Application
-1. In the IntelliJ Project tool window, navigate to:
+### Step 3: Run the Application
+1. Navigate to:
    `src/main/java/org/example/Main.java`
-2. Right-click on `Main.java` and click **Run 'Main.main()'** (or click the green Play icon next to `public class Main`).
-3. The **Sunrise Dental Clinic - Staff Login** window will appear!
+2. Right-click `Main.java` and select **Run 'Main.main()'**.
+3. The **Sunrise Dental Clinic - Staff Login** screen will launch!
 
 ---
 
-## 🔑 Default Login Credentials
+## 🔑 Login Credentials
 
 | Username | Password | Role | Full Name |
 | :--- | :--- | :--- | :--- |
 | **`admin`** | `admin123` | Administrator | Dr. Samantha |
 | **`staff`** | `staff123` | Receptionist | Kasuni Silva |
 
+*(You can also click **"Register as New User"** on the login screen to create a new staff account).*
+
 ---
 
 ## 🧪 Sample Preloaded Appointments for Testing
 
-Once logged in, you can immediately test **Search** or **Calculate & Print Bill** using these preloaded Appointment Numbers:
-
 - **1001**: Kamal Perera (*Teeth Cleaning & Scaling*)
 - **1002**: Nimali Fernando (*Tooth Filling*)
 - **1003**: Sunil Wickramasinghe (*Root Canal Treatment*)
-
----
-
-## 📄 License & Academic Note
-Created for ICBT / Cardiff Metropolitan University - Advanced Programming (CIS6003) Assessment.

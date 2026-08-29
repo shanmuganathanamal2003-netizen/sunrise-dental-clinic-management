@@ -11,11 +11,17 @@ public class User {
     private String fullName;
     private String role;
 
+
     // Default Constructor
     public User() {
     }
 
-    // Parameterized Constructor
+    // Parameterized Constructor without userId (for creating new users)
+    public User(String username, String password, String fullName, String role) {
+        this(0, username, password, fullName, role);
+    }
+
+    // Parameterized Constructor with userId
     public User(int userId, String username, String password, String fullName, String role) {
         this.userId = userId;
         this.username = username;
@@ -63,6 +69,18 @@ public class User {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    /**
+     * Prints full user details using System.out.println.
+     */
+    public void printDetails() {
+        System.out.println("-------------------------------------------");
+        System.out.println("User ID   : " + userId);
+        System.out.println("Username  : " + username);
+        System.out.println("Full Name : " + fullName);
+        System.out.println("Role      : " + role);
+        System.out.println("-------------------------------------------");
     }
 
     @Override
