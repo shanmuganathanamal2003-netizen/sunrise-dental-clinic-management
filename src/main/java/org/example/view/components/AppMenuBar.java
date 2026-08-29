@@ -10,16 +10,18 @@ import org.example.model.User;
 import org.example.view.AddAppointmentView;
 import org.example.view.AppointmentListView;
 import org.example.view.BillView;
+import org.example.view.DoctorQueueView;
 import org.example.view.HelpView;
 import org.example.view.LoginView;
 import org.example.view.MainMenuView;
 import org.example.view.PatientHistoryView;
+import org.example.view.RegisterUserView;
 import org.example.view.ReportsView;
 
 /**
- * AppMenuBar - Reusable Application Menu Bar
+ * AppMenuBar - Role-Based Reusable Application Menu Bar
  * 
- * Provides consistent top-level navigation across all primary application windows
+ * Enforces permissions for Admin, Receptionist, and Doctor roles
  * while preserving window maximize state across transitions.
  */
 public class AppMenuBar extends JMenuBar {
@@ -27,6 +29,11 @@ public class AppMenuBar extends JMenuBar {
     public static JMenuBar createMenuBar(JFrame currentFrame, User currentUser) {
         JMenuBar menuBar = new JMenuBar();
         Font menuFont = new Font("Segoe UI", Font.PLAIN, 12);
+
+        String role = (currentUser != null && currentUser.getRole() != null) ? currentUser.getRole() : "Receptionist";
+        boolean isAdmin = "Admin".equalsIgnoreCase(role);
+        boolean isReceptionist = "Receptionist".equalsIgnoreCase(role);
+        boolean isDoctor = "Doctor".equalsIgnoreCase(role);
 
         // 1. File Menu
         JMenu menuFile = new JMenu("File");
@@ -63,6 +70,17 @@ public class AppMenuBar extends JMenuBar {
         });
 
         menuFile.add(itemDashboard);
+
+        // Admin-only Staff Management in File Menu
+        if (isAdmin) {
+            JMenuItem itemStaff = new JMenuItem("Manage Staff Accounts (Admin)");
+            itemStaff.setFont(menuFont);
+            itemStaff.addActionListener(e -> {
+                UIHelper.navigate(currentFrame, new RegisterUserView(currentUser));
+            });
+            menuFile.add(itemStaff);
+        }
+
         menuFile.addSeparator();
         menuFile.add(itemLogout);
         menuFile.add(itemExit);
@@ -72,22 +90,31 @@ public class AppMenuBar extends JMenuBar {
         JMenu menuAppt = new JMenu("Appointments");
         menuAppt.setFont(menuFont);
 
-        JMenuItem itemNewAppt = new JMenuItem("Add New Appointment (New / Old Patient)");
-        JMenuItem itemViewAll = new JMenuItem("View All Confirmed Appointments");
+        if (isDoctor) {
+            JMenuItem itemDoctorQueue = new JMenuItem("My Patient Schedule & Queue");
+            itemDoctorQueue.setFont(menuFont);
+            itemDoctorQueue.addActionListener(e -> {
+                UIHelper.navigate(currentFrame, new DoctorQueueView(currentUser));
+            });
+            menuAppt.add(itemDoctorQueue);
+        } else {
+            JMenuItem itemNewAppt = new JMenuItem("Add New Appointment (New / Old Patient)");
+            JMenuItem itemViewAll = new JMenuItem("View All Confirmed Appointments");
 
-        itemNewAppt.setFont(menuFont);
-        itemViewAll.setFont(menuFont);
+            itemNewAppt.setFont(menuFont);
+            itemViewAll.setFont(menuFont);
 
-        itemNewAppt.addActionListener(e -> {
-            UIHelper.navigate(currentFrame, new AddAppointmentView(currentUser));
-        });
+            itemNewAppt.addActionListener(e -> {
+                UIHelper.navigate(currentFrame, new AddAppointmentView(currentUser));
+            });
 
-        itemViewAll.addActionListener(e -> {
-            UIHelper.navigate(currentFrame, new AppointmentListView(currentUser));
-        });
+            itemViewAll.addActionListener(e -> {
+                UIHelper.navigate(currentFrame, new AppointmentListView(currentUser));
+            });
 
-        menuAppt.add(itemNewAppt);
-        menuAppt.add(itemViewAll);
+            menuAppt.add(itemNewAppt);
+            menuAppt.add(itemViewAll);
+        }
         menuBar.add(menuAppt);
 
         // 3. Patients & Search Menu
@@ -103,31 +130,35 @@ public class AppMenuBar extends JMenuBar {
         menuPatients.add(itemHistory);
         menuBar.add(menuPatients);
 
-        // 4. Billing Menu
-        JMenu menuBilling = new JMenu("Billing");
-        menuBilling.setFont(menuFont);
+        // 4. Billing Menu (Admin & Receptionist only)
+        if (isAdmin || isReceptionist) {
+            JMenu menuBilling = new JMenu("Billing");
+            menuBilling.setFont(menuFont);
 
-        JMenuItem itemBill = new JMenuItem("Calculate & Print Patient Bill");
-        itemBill.setFont(menuFont);
-        itemBill.addActionListener(e -> {
-            UIHelper.navigate(currentFrame, new BillView(currentUser, -1));
-        });
+            JMenuItem itemBill = new JMenuItem("Calculate & Print Patient Bill");
+            itemBill.setFont(menuFont);
+            itemBill.addActionListener(e -> {
+                UIHelper.navigate(currentFrame, new BillView(currentUser, -1));
+            });
 
-        menuBilling.add(itemBill);
-        menuBar.add(menuBilling);
+            menuBilling.add(itemBill);
+            menuBar.add(menuBilling);
+        }
 
-        // 5. Reports Menu
-        JMenu menuReports = new JMenu("Reports");
-        menuReports.setFont(menuFont);
+        // 5. Reports Menu (Admin only)
+        if (isAdmin) {
+            JMenu menuReports = new JMenu("Reports");
+            menuReports.setFont(menuFont);
 
-        JMenuItem itemReports = new JMenuItem("Clinic Analytics & Financial Reports");
-        itemReports.setFont(menuFont);
-        itemReports.addActionListener(e -> {
-            UIHelper.navigate(currentFrame, new ReportsView(currentUser));
-        });
+            JMenuItem itemReports = new JMenuItem("Clinic Analytics & Financial Reports");
+            itemReports.setFont(menuFont);
+            itemReports.addActionListener(e -> {
+                UIHelper.navigate(currentFrame, new ReportsView(currentUser));
+            });
 
-        menuReports.add(itemReports);
-        menuBar.add(menuReports);
+            menuReports.add(itemReports);
+            menuBar.add(menuReports);
+        }
 
         // 6. Help Menu
         JMenu menuHelp = new JMenu("Help");
