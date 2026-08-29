@@ -50,6 +50,7 @@ public class AppointmentListView extends JFrame {
     private JButton btnReset;
     private JLabel lblTotalRecords;
 
+
     // Table
     private JTable tblAppointments;
     private DefaultTableModel tableModel;
@@ -59,7 +60,6 @@ public class AppointmentListView extends JFrame {
     private JButton btnCancelAppt;
     private JButton btnPatientHistory;
     private JButton btnNewAppt;
-    private JButton btnPrintTable;
     private JButton btnBack;
 
     public AppointmentListView(User user) {
@@ -194,14 +194,12 @@ public class AppointmentListView extends JFrame {
         btnCancelAppt = UIHelper.createDangerButton("Cancel Appointment", new Dimension(160, 36));
         btnPatientHistory = UIHelper.createSecondaryButton("Patient History", new Dimension(135, 36));
         btnNewAppt = UIHelper.createPrimaryButton("+ Add New Appointment", new Dimension(190, 36));
-        btnPrintTable = UIHelper.createSecondaryButton("Print Records Table", new Dimension(150, 36));
         btnBack = UIHelper.createSecondaryButton("Back to Dashboard", new Dimension(145, 36));
 
         buttonPanel.add(btnBillSelected);
         buttonPanel.add(btnCancelAppt);
         buttonPanel.add(btnPatientHistory);
         buttonPanel.add(btnNewAppt);
-        buttonPanel.add(btnPrintTable);
         buttonPanel.add(btnBack);
 
         add(buttonPanel, BorderLayout.SOUTH);
@@ -251,8 +249,6 @@ public class AppointmentListView extends JFrame {
         btnNewAppt.addActionListener(e -> {
             UIHelper.navigate(this, new AddAppointmentView(currentUser));
         });
-
-        btnPrintTable.addActionListener(e -> printTable());
 
         btnBack.addActionListener(e -> {
             UIHelper.navigate(this, new MainMenuView(currentUser));
@@ -378,21 +374,6 @@ public class AppointmentListView extends JFrame {
             } catch (SQLException ex) {
                 JOptionPane.showMessageDialog(this, "Database error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
-        }
-    }
-
-    private void printTable() {
-        try {
-            boolean complete = tblAppointments.print(
-                JTable.PrintMode.FIT_WIDTH,
-                new java.text.MessageFormat("Sunrise Dental Clinic - Confirmed Appointments List"),
-                new java.text.MessageFormat("Page {0}")
-            );
-            if (complete) {
-                JOptionPane.showMessageDialog(this, "Table printing completed successfully.", "Print Job Done", JOptionPane.INFORMATION_MESSAGE);
-            }
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Printing error: " + ex.getMessage(), "Print Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 }

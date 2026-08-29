@@ -14,6 +14,7 @@ import org.example.model.Patient;
  * PatientDAO (Data Access Object)
  * Handles database operations for patient profile records and history lookups.
  */
+
 public class PatientDAO {
 
     /**
@@ -66,7 +67,7 @@ public class PatientDAO {
                 list.add(mapRowToPatient(rs));
             }
         } catch (SQLException e) {
-            System.err.println("Error fetching patients: " + e.getMessage());
+            System.out.println("Error fetching patients: " + e.getMessage());
         }
         return list;
     }
@@ -166,6 +167,39 @@ public class PatientDAO {
             stmt.setString(6, patient.getMedicalHistory() != null ? patient.getMedicalHistory().trim() : "");
             stmt.setInt(7, patient.getPatientId());
 
+            return stmt.executeUpdate() > 0;
+        }
+    }
+
+    /**
+     * Retrieves a patient by exact or first matching name.
+     */
+    public Patient getPatientByName(String patientName) throws SQLException {
+        String sql = "SELECT * FROM patients WHERE LOWER(patient_name) = LOWER(?) LIMIT 1";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, patientName.trim());
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return mapRowToPatient(rs);
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Deletes a patient profile by patient ID.
+     */
+    public boolean deletePatient(int patientId) throws SQLException {
+        String sql = "DELETE FROM patients WHERE patient_id = ?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, patientId);
             return stmt.executeUpdate() > 0;
         }
     }

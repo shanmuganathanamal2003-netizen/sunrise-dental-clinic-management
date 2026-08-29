@@ -52,6 +52,7 @@ public class AddAppointmentView extends JFrame {
     private final AppointmentService appointmentService;
     private final PatientDAO patientDAO;
     private final TreatmentDAO treatmentDAO;
+    private final org.example.dao.UserDAO userDAO;
 
     // Patient Type Mode Switch
     private JRadioButton radExistingPatient;
@@ -77,7 +78,7 @@ public class AddAppointmentView extends JFrame {
 
     // Common Appointment Controls
     private JLabel lblNextApptNumber;
-    private JComboBox<String> cmbDentist;
+    private JComboBox<User> cmbDentist;
     private JComboBox<Treatment> cmbTreatment;
     private JTextField txtAppointmentDate;
     private JButton btnPickCalendar;
@@ -92,7 +93,6 @@ public class AddAppointmentView extends JFrame {
     private JButton btnSave;
     private JButton btnClear;
     private JButton btnViewAll;
-    private JButton btnPatientHistory;
     private JButton btnBack;
 
     public AddAppointmentView(User user) {
@@ -100,6 +100,7 @@ public class AddAppointmentView extends JFrame {
         this.appointmentService = new AppointmentService();
         this.patientDAO = new PatientDAO();
         this.treatmentDAO = new TreatmentDAO();
+        this.userDAO = new org.example.dao.UserDAO();
         initializeUI();
         loadInitialData();
     }
@@ -202,13 +203,11 @@ public class AddAppointmentView extends JFrame {
         btnSave = UIHelper.createPrimaryButton("Save & Book Appointment", new Dimension(220, 36));
         btnClear = UIHelper.createSecondaryButton("Clear Form", new Dimension(110, 36));
         btnViewAll = UIHelper.createSecondaryButton("View All Appointments", new Dimension(175, 36));
-        btnPatientHistory = UIHelper.createSecondaryButton("Patient History", new Dimension(135, 36));
         btnBack = UIHelper.createSecondaryButton("Back to Dashboard", new Dimension(150, 36));
 
         buttonPanel.add(btnSave);
         buttonPanel.add(btnClear);
         buttonPanel.add(btnViewAll);
-        buttonPanel.add(btnPatientHistory);
         buttonPanel.add(btnBack);
 
         add(buttonPanel, BorderLayout.SOUTH);
@@ -235,10 +234,6 @@ public class AddAppointmentView extends JFrame {
 
         btnViewAll.addActionListener(e -> {
             UIHelper.navigate(this, new AppointmentListView(currentUser));
-        });
-
-        btnPatientHistory.addActionListener(e -> {
-            UIHelper.navigate(this, new PatientHistoryView(currentUser));
         });
 
         btnBack.addActionListener(e -> {
@@ -388,13 +383,7 @@ public class AddAppointmentView extends JFrame {
         panel.add(lblDentist, gbc);
 
         gbc.gridx = 1; gbc.weightx = 0.7;
-        String[] dentists = {
-            "Dr. Samantha Perera (Senior Dental Surgeon)",
-            "Dr. Nihal Silva (Orthodontist)",
-            "Dr. Kasun Fernando (Endodontist)",
-            "Dr. Anoma Wickramasinghe (General Dental Practitioner)"
-        };
-        cmbDentist = new JComboBox<>(dentists);
+        cmbDentist = new JComboBox<>();
         cmbDentist.setFont(UIHelper.FONT_REGULAR);
         panel.add(cmbDentist, gbc);
         r++;
@@ -540,11 +529,26 @@ public class AddAppointmentView extends JFrame {
             cmbTreatment.addItem(t);
         }
 
+        // Load doctors dynamically from database
+        loadDoctors();
+
         // Load existing registered patients
         loadRegisteredPatients();
 
         refreshNextAppointmentNumber();
         updateFeeSummaryRows();
+    }
+
+    private void loadDoctors() {
+        cmbDentist.removeAllItems();
+        try {
+            List<User> doctors = userDAO.getAllDoctors();
+            for (User d : doctors) {
+                cmbDentist.addItem(d);
+            }
+        } catch (SQLException ex) {
+            System.out.println("Error loading doctors: " + ex.getMessage());
+        }
     }
 
     private void loadRegisteredPatients() {
@@ -662,7 +666,15 @@ public class AddAppointmentView extends JFrame {
             }
         }
 
-        String dentist = (String) cmbDentist.getSelectedItem();
+        User selectedDoctor = (User) cmbDentist.getSelectedItem();
+        if (selectedDoctor == null) {
+            JOptionPane.showMessageDialog(this, "Please select an Assigned Doctor.", "Missing Doctor", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        String dentistName = selectedDoctor.getFullName();
+        String assignedDoctorUsername = selectedDoctor.getUsername();
+
         Treatment treatment = (Treatment) cmbTreatment.getSelectedItem();
         String appointmentDate = txtAppointmentDate.getText().trim();
         String appointmentTime = (String) cmbAppointmentTime.getSelectedItem();
@@ -678,7 +690,8 @@ public class AddAppointmentView extends JFrame {
             patientAge,
             address,
             contactNumber,
-            dentist,
+            dentistName,
+            assignedDoctorUsername,
             treatment.getTreatmentName(),
             appointmentDate,
             appointmentTime,
@@ -689,15 +702,18 @@ public class AddAppointmentView extends JFrame {
         try {
             int generatedId = appointmentService.registerAppointment(appointment);
             if (generatedId > 0) {
+                System.out.println("[Appointment] New appointment booked successfully:");
+                appointment.printDetails();
+
                 JOptionPane.showMessageDialog(
                     this,
                     "Appointment Successfully Added & Confirmed!\n\n" +
                     "Appointment Number : " + generatedId + "\n" +
                     "Patient Name       : " + patientName + " (Age: " + patientAge + ")\n" +
-                    "Assigned Doctor    : " + dentist + "\n" +
+                    "Assigned Doctor    : " + dentistName + "\n" +
                     "Procedure          : " + treatment.getTreatmentName() + "\n" +
                     "Date & Time        : " + appointmentDate + " at " + appointmentTime + "\n" +
-                    "Total Estimate     : LKR " + String.format("%,.2f", appointment.getTotalBill()),
+                    "Total Estimate     : LKR " + appointment.getTotalBill(),
                     "Booking Confirmed",
                     JOptionPane.INFORMATION_MESSAGE
                 );

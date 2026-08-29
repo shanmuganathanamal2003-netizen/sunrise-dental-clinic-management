@@ -141,6 +141,34 @@ public class AppointmentService {
     }
 
     /**
+     * Searches appointments specifically by Patient Name.
+     */
+    public List<Appointment> searchByPatientName(String patientName) throws SQLException {
+        return appointmentDAO.searchByPatientName(patientName);
+    }
+
+    /**
+     * Retrieves appointments filtered by status (Scheduled, Billed, Cancelled).
+     */
+    public List<Appointment> getAppointmentsByStatus(String status) throws SQLException {
+        return appointmentDAO.getAppointmentsByStatus(status);
+    }
+
+    /**
+     * Checks if a dentist is booked at a given slot.
+     */
+    public boolean isDentistBooked(String dentistName, String appointmentDate, String appointmentTime, int excludeAppointmentNo) throws SQLException {
+        return appointmentDAO.isDentistBooked(dentistName, appointmentDate, appointmentTime, excludeAppointmentNo);
+    }
+
+    /**
+     * Updates appointment billing details.
+     */
+    public boolean updateAppointmentBilling(int appointmentNumber, double treatmentCost, double consultationFee, double totalBill) throws SQLException {
+        return appointmentDAO.updateAppointmentBilling(appointmentNumber, treatmentCost, consultationFee, totalBill);
+    }
+
+    /**
      * Returns preview for next appointment number.
      */
     public int getNextAppointmentNumberPreview() {
@@ -152,6 +180,68 @@ public class AppointmentService {
      */
     public Map<String, Object> getDashboardStats() {
         return appointmentDAO.getDashboardStatistics();
+    }
+
+    /**
+     * Retrieves appointments scheduled for a specific doctor on a single date.
+     */
+    public List<Appointment> getAppointmentsForDoctor(String username, String date) throws SQLException {
+        return appointmentDAO.getAppointmentsByDoctorAndDate(username, date);
+    }
+
+    /**
+     * Retrieves appointments scheduled for a specific doctor across a date range.
+     */
+    public List<Appointment> getAppointmentsForDoctor(String username, String fromDate, String toDate) throws SQLException {
+        return appointmentDAO.getAppointmentsByDoctorAndDateRange(username, fromDate, toDate);
+    }
+
+    /**
+     * Retrieves all appointments assigned to a specific doctor.
+     */
+    public List<Appointment> getAppointmentsForDoctor(String username) throws SQLException {
+        return appointmentDAO.getAppointmentsByDoctor(username);
+    }
+
+    /**
+     * Saves diagnosis and clinical treatment notes for an appointment.
+     */
+    public boolean saveDoctorNotes(int appointmentNumber, String notes) throws SQLException {
+        if (appointmentNumber <= 0) {
+            throw new IllegalArgumentException("Invalid appointment number.");
+        }
+        return appointmentDAO.updateDoctorNotes(appointmentNumber, notes);
+    }
+
+    /**
+     * Displays appointment details to the console using System.out.println.
+     */
+    public void displayAppointmentDetails(int appointmentNumber) {
+        try {
+            Appointment appt = getAppointmentByNumber(appointmentNumber);
+            if (appt != null) {
+                appt.printDetails();
+            } else {
+                System.out.println("[Appointment] No appointment found with ID: " + appointmentNumber);
+            }
+        } catch (SQLException e) {
+            System.out.println("Error fetching appointment for display: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Displays all appointments to the console using System.out.println.
+     */
+    public void displayAllAppointments() {
+        try {
+            List<Appointment> list = getAllAppointments();
+            System.out.println("====== ALL APPOINTMENTS (" + list.size() + ") ======");
+            for (Appointment appt : list) {
+                appt.printDetails();
+            }
+        } catch (SQLException e) {
+            System.out.println("Error listing appointments: " + e.getMessage());
+        }
     }
 }
 
