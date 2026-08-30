@@ -11,8 +11,9 @@ USE `sunrise_dental_db`;
 
 -- --------------------------------------------------------------------
 -- 2. Table: users
--- Stores authorized staff, doctor, and administrator login credentials
+-- Stores pre-configured clinic staff, doctors, and administrator login credentials
 -- Supported roles: 'Admin', 'Receptionist', 'Doctor'
+-- (User accounts are pre-seeded and managed by Database Administration)
 -- --------------------------------------------------------------------
 DROP TABLE IF EXISTS `users`;
 CREATE TABLE `users` (
