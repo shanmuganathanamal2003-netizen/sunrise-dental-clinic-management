@@ -168,8 +168,10 @@ public class DBConnection {
                 if (rs.next() && rs.getInt(1) == 0) {
                     stmt.executeUpdate(
                         "INSERT INTO `users` (`username`, `password`, `full_name`, `role`) VALUES " +
-                        "('admin', 'admin123', 'Administrator - Dr. Samantha', 'Admin')," +
-                        "('staff', 'staff123', 'Receptionist - Kasuni Silva', 'Receptionist');"
+                        "('admin', 'admin123', 'Administrator - Dr. Samantha Perera', 'Admin')," +
+                        "('staff', 'staff123', 'Receptionist - Kasuni Silva', 'Receptionist')," +
+                        "('doctor1', 'doctor123', 'Dr. Kasun Fernando', 'Doctor')," +
+                        "('doctor2', 'doctor123', 'Dr. Nihal Silva', 'Doctor');"
                     );
                 }
             }

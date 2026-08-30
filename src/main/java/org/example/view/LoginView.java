@@ -25,8 +25,8 @@ import org.example.view.components.UIHelper;
 /**
  * LoginView - User Authentication Screen
  * 
- * Allows clinic staff/administrators to log into the system
- * or register a new staff account. Supports window maximize/minimize.
+ * Allows clinic staff/administrators to log into the system.
+ * Supports window maximize/minimize.
  */
 public class LoginView extends JFrame {
 

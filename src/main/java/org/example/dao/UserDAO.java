@@ -10,7 +10,7 @@ import org.example.model.User;
 
 /**
  * UserDAO (Data Access Object)
- * Handles database operations for user authentication and staff registration.
+ * Handles database operations for user authentication and retrieval.
  */
 public class UserDAO {
 
@@ -47,61 +47,6 @@ public class UserDAO {
             }
         }
         return null;
-    }
-
-    /**
-     * Checks if a username is already registered in the system.
-     * 
-     * @param username the username to check
-     * @return true if taken, false if available
-     * @throws SQLException on database query failure
-     */
-    public boolean isUsernameTaken(String username) throws SQLException {
-        String sql = "SELECT COUNT(*) FROM users WHERE LOWER(username) = LOWER(?)";
-
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setString(1, username.trim());
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt(1) > 0;
-                }
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Registers a new user/staff member into the database.
-     * 
-     * @param user User object containing full name, username, password, and role
-     * @return generated user_id if successful, -1 otherwise
-     * @throws SQLException on database error
-     */
-    public int registerUser(User user) throws SQLException {
-        String sql = "INSERT INTO users (username, password, full_name, role) VALUES (?, ?, ?, ?)";
-
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-
-            stmt.setString(1, user.getUsername().trim());
-            stmt.setString(2, user.getPassword().trim());
-            stmt.setString(3, user.getFullName().trim());
-            stmt.setString(4, user.getRole() != null ? user.getRole().trim() : "Receptionist");
-
-            int affectedRows = stmt.executeUpdate();
-            if (affectedRows > 0) {
-                try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
-                    if (generatedKeys.next()) {
-                        int id = generatedKeys.getInt(1);
-                        user.setUserId(id);
-                        return id;
-                    }
-                }
-            }
-        }
-        return -1;
     }
 
     /**

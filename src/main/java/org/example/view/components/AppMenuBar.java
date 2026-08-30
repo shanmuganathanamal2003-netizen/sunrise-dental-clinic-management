@@ -15,7 +15,6 @@ import org.example.view.HelpView;
 import org.example.view.LoginView;
 import org.example.view.MainMenuView;
 import org.example.view.PatientHistoryView;
-import org.example.view.RegisterUserView;
 import org.example.view.ReportsView;
 
 /**
@@ -70,16 +69,6 @@ public class AppMenuBar extends JMenuBar {
         });
 
         menuFile.add(itemDashboard);
-
-        // Admin-only Staff Management in File Menu
-        if (isAdmin) {
-            JMenuItem itemStaff = new JMenuItem("Manage Staff Accounts (Admin)");
-            itemStaff.setFont(menuFont);
-            itemStaff.addActionListener(e -> {
-                UIHelper.navigate(currentFrame, new RegisterUserView(currentUser));
-            });
-            menuFile.add(itemStaff);
-        }
 
         menuFile.addSeparator();
         menuFile.add(itemLogout);

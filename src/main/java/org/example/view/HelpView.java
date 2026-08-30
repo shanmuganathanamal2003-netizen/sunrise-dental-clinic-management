@@ -49,14 +49,13 @@ public class HelpView extends JDialog {
             "<body style='font-family: Segoe UI, sans-serif; font-size: 11pt; padding: 12px; color: #222222;'>" +
             
             "<h3 style='color: #185a9d; margin-top: 0;'>1. System Roles & Access Control</h3>" +
-            "<p>• <b>Admin:</b> Full administrative authority. Can create and manage staff accounts, book appointments, generate bills, access clinic revenue reports, and manage all patient records.<br>" +
+            "<p>• <b>Admin:</b> Full administrative authority. Can book appointments, generate bills, access clinic revenue reports, and manage all patient records.<br>" +
             "• <b>Receptionist:</b> Front desk operations. Can book appointments (for new or existing patients), view confirmed schedules, look up patient medical history, and calculate & print bills.<br>" +
             "• <b>Doctor:</b> Clinical practice portal. Can view their dedicated patient schedule ('Today', 'Tomorrow', 'Next 7 Days', or custom date picker), inspect patient medical histories, and add/edit clinical diagnosis notes.<br>" +
             "• <b>Default Credentials:</b><br>" +
             "&nbsp;&nbsp;• Admin: <code>admin</code> / <code>admin123</code><br>" +
             "&nbsp;&nbsp;• Receptionist: <code>receptionist1</code> / <code>receptionist123</code><br>" +
-            "&nbsp;&nbsp;• Doctor: <code>doctor1</code> / <code>doctor123</code> | <code>doctor2</code> / <code>doctor123</code><br>" +
-            "• <i>Staff Registration:</i> Securely managed exclusively by Admin via the <b>'Manage Staff Accounts'</b> menu.</p>" +
+            "&nbsp;&nbsp;• Doctor: <code>doctor1</code> / <code>doctor123</code> | <code>doctor2</code> / <code>doctor123</code></p>" +
 
             "<h3 style='color: #185a9d;'>2. Adding New Appointments (New vs. Registered Patients)</h3>" +
             "<p>• Select either <b>'Registered / Old Patient'</b> or <b>'New Patient'</b> mode:<br>" +
