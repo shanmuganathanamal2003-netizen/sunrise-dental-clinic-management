@@ -14,6 +14,7 @@ import java.time.LocalDate;
 import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -50,6 +51,7 @@ public class DoctorQueueView extends JFrame {
     private JButton btnTomorrow;
     private JButton btnNext7Days;
     private JButton btnPickDate;
+    private JComboBox<String> cmbStatusFilter;
     private JLabel lblActiveFilter;
 
     // Current filter state
@@ -118,16 +120,23 @@ public class DoctorQueueView extends JFrame {
         lblActiveFilter = new JLabel("Viewing: Today (" + LocalDate.now() + ")");
         lblActiveFilter.setFont(new Font("Segoe UI", Font.BOLD, 12));
         lblActiveFilter.setForeground(UIHelper.COLOR_PRIMARY);
-
         lblRecordCount = new JLabel("0 patient(s) found");
         lblRecordCount.setFont(new Font("Segoe UI", Font.ITALIC, 12));
         lblRecordCount.setForeground(new Color(90, 90, 90));
+
+        JLabel lblStatusFilter = new JLabel("Status:");
+        lblStatusFilter.setFont(UIHelper.FONT_BOLD);
+        String[] statusOptions = {"All", "Scheduled", "Confirmed", "Cancelled"};
+        cmbStatusFilter = new JComboBox<>(statusOptions);
+        cmbStatusFilter.setFont(UIHelper.FONT_REGULAR);
 
         filterPanel.add(lblQuick);
         filterPanel.add(btnToday);
         filterPanel.add(btnTomorrow);
         filterPanel.add(btnNext7Days);
         filterPanel.add(btnPickDate);
+        filterPanel.add(lblStatusFilter);
+        filterPanel.add(cmbStatusFilter);
         filterPanel.add(lblActiveFilter);
         filterPanel.add(lblRecordCount);
 
@@ -217,6 +226,7 @@ public class DoctorQueueView extends JFrame {
         btnTomorrow.addActionListener(e -> loadAppointmentsTomorrow());
         btnNext7Days.addActionListener(e -> loadAppointmentsNext7Days());
         btnPickDate.addActionListener(e -> openDatePicker());
+        cmbStatusFilter.addActionListener(e -> reloadCurrentFilter());
 
         btnAddNotes.addActionListener(e -> openAddNotesDialog());
         btnConfirmAppt.addActionListener(e -> confirmSelectedAppointment());
@@ -345,20 +355,28 @@ public class DoctorQueueView extends JFrame {
 
     private void populateTable(List<Appointment> list) {
         tableModel.setRowCount(0);
+        String selectedStatus = (String) cmbStatusFilter.getSelectedItem();
+        int count = 0;
         for (Appointment a : list) {
+            if (selectedStatus != null && !"All".equalsIgnoreCase(selectedStatus)) {
+                if (!selectedStatus.equalsIgnoreCase(a.getStatus())) {
+                    continue;
+                }
+            }
             tableModel.addRow(new Object[]{
-                a.getAppointmentNumber(),
-                a.getPatientName(),
-                a.getPatientAge() != null ? a.getPatientAge() : "1 Month",
-                a.getContactNumber(),
-                a.getAppointmentDate(),
-                a.getAppointmentTime(),
-                a.getTreatmentType(),
-                a.getStatus(),
-                a.getDoctorNotes() != null ? a.getDoctorNotes() : "-"
+                    a.getAppointmentNumber(),
+                    a.getPatientName(),
+                    a.getPatientAge() != null ? a.getPatientAge() : "1 Month",
+                    a.getContactNumber(),
+                    a.getAppointmentDate(),
+                    a.getAppointmentTime(),
+                    a.getTreatmentType(),
+                    a.getStatus(),
+                    a.getDoctorNotes() != null ? a.getDoctorNotes() : "-"
             });
+            count++;
         }
-        lblRecordCount.setText(list.size() + " appointment(s) found");
+        lblRecordCount.setText(count + " appointment(s) found");
     }
 
     private void openAddNotesDialog() {

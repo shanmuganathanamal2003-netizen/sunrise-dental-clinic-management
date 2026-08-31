@@ -108,7 +108,7 @@ public class AppointmentListView extends JFrame {
 
         JLabel lblStatus = new JLabel("Status:");
         lblStatus.setFont(UIHelper.FONT_BOLD);
-        String[] statusOptions = {"All Statuses", "Scheduled", "Billed", "Cancelled"};
+        String[] statusOptions = {"All Statuses", "Scheduled", "Confirmed", "Billed", "Cancelled"};
         cmbStatusFilter = new JComboBox<>(statusOptions);
         cmbStatusFilter.setFont(UIHelper.FONT_REGULAR);
 
