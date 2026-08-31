@@ -105,6 +105,10 @@ public class AppointmentService {
         return appointmentDAO.cancelAppointment(appointmentNumber, reason);
     }
 
+    public boolean confirmAppointment(int appointmentNumber) throws SQLException {
+        return appointmentDAO.confirmAppointment(appointmentNumber);
+    }
+
     /**
      * Searches appointments by Appointment Number.
      */

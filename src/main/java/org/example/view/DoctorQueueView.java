@@ -64,6 +64,8 @@ public class DoctorQueueView extends JFrame {
     // Action Buttons
     private JButton btnAddNotes;
     private JButton btnViewPatientHistory;
+    private JButton btnConfirmAppt;
+    private JButton btnCancelAppt;
     private JButton btnRefresh;
     private JButton btnBack;
 
@@ -175,6 +177,9 @@ public class DoctorQueueView extends JFrame {
                 } else if ("Cancelled".equalsIgnoreCase(val)) {
                     setForeground(new Color(190, 25, 25));
                     setFont(getFont().deriveFont(Font.BOLD));
+                } else if ("Confirmed".equalsIgnoreCase(val)) {
+                    setForeground(new Color(20, 90, 170));
+                    setFont(getFont().deriveFont(Font.BOLD));
                 } else {
                     setForeground(new Color(210, 100, 0));
                     setFont(getFont().deriveFont(Font.BOLD));
@@ -193,11 +198,15 @@ public class DoctorQueueView extends JFrame {
 
         btnAddNotes = UIHelper.createPrimaryButton("📝 Add Diagnosis / Treatment Notes", new Dimension(260, 36));
         btnViewPatientHistory = UIHelper.createSecondaryButton("View Patient History", new Dimension(170, 36));
+        btnConfirmAppt = UIHelper.createPrimaryButton("✅ Confirm Appointment", new Dimension(190, 36));
+        btnCancelAppt = UIHelper.createDangerButton("❌ Cancel Appointment", new Dimension(180, 36));
         btnRefresh = UIHelper.createSecondaryButton("Refresh Schedule", new Dimension(145, 36));
         btnBack = UIHelper.createSecondaryButton("Back to Dashboard", new Dimension(150, 36));
 
         buttonPanel.add(btnAddNotes);
         buttonPanel.add(btnViewPatientHistory);
+        buttonPanel.add(btnConfirmAppt);
+        buttonPanel.add(btnCancelAppt);
         buttonPanel.add(btnRefresh);
         buttonPanel.add(btnBack);
 
@@ -210,6 +219,8 @@ public class DoctorQueueView extends JFrame {
         btnPickDate.addActionListener(e -> openDatePicker());
 
         btnAddNotes.addActionListener(e -> openAddNotesDialog());
+        btnConfirmAppt.addActionListener(e -> confirmSelectedAppointment());
+        btnCancelAppt.addActionListener(e -> cancelSelectedAppointment());
 
         btnViewPatientHistory.addActionListener(e -> {
             int selectedRow = tblDoctorAppointments.getSelectedRow();
@@ -431,5 +442,89 @@ public class DoctorQueueView extends JFrame {
         dialog.add(btnPanel, BorderLayout.SOUTH);
 
         dialog.setVisible(true);
+    }
+
+    private void confirmSelectedAppointment() {
+        int selectedRow = tblDoctorAppointments.getSelectedRow();
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, "Please select an appointment from the table to confirm.", "No Selection", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        int apptNo = (int) tableModel.getValueAt(selectedRow, 0);
+        String patientName = (String) tableModel.getValueAt(selectedRow, 1);
+        String currentStatus = (String) tableModel.getValueAt(selectedRow, 7);
+
+        if ("Confirmed".equalsIgnoreCase(currentStatus)) {
+            JOptionPane.showMessageDialog(this, "This appointment is already confirmed.", "Already Confirmed", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+        if ("Cancelled".equalsIgnoreCase(currentStatus)) {
+            JOptionPane.showMessageDialog(this, "This appointment is cancelled and cannot be confirmed.", "Cannot Confirm", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        int choice = JOptionPane.showConfirmDialog(
+                this,
+                "Confirm that you will see patient '" + patientName + "' for Appointment #" + apptNo + "?",
+                "Confirm Appointment",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE
+        );
+
+        if (choice == JOptionPane.YES_OPTION) {
+            try {
+                boolean success = appointmentService.confirmAppointment(apptNo);
+                if (success) {
+                    JOptionPane.showMessageDialog(this, "Appointment #" + apptNo + " has been CONFIRMED.", "Appointment Confirmed", JOptionPane.INFORMATION_MESSAGE);
+                    reloadCurrentFilter();
+                }
+            } catch (SQLException ex) {
+                JOptionPane.showMessageDialog(this, "Database error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    private void cancelSelectedAppointment() {
+        int selectedRow = tblDoctorAppointments.getSelectedRow();
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, "Please select an appointment from the table to cancel.", "No Selection", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        int apptNo = (int) tableModel.getValueAt(selectedRow, 0);
+        String patientName = (String) tableModel.getValueAt(selectedRow, 1);
+        String currentStatus = (String) tableModel.getValueAt(selectedRow, 7);
+
+        if ("Cancelled".equalsIgnoreCase(currentStatus)) {
+            JOptionPane.showMessageDialog(this, "This appointment is already cancelled.", "Already Cancelled", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+
+        int choice = JOptionPane.showConfirmDialog(
+                this,
+                "Are you sure you want to CANCEL Appointment #" + apptNo + " for patient '" + patientName + "'?",
+                "Confirm Cancellation",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE
+        );
+
+        if (choice == JOptionPane.YES_OPTION) {
+            String reason = JOptionPane.showInputDialog(
+                    this,
+                    "Optional: Enter cancellation reason:",
+                    "Cancellation Reason",
+                    JOptionPane.PLAIN_MESSAGE
+            );
+            try {
+                boolean success = appointmentService.cancelAppointment(apptNo, reason);
+                if (success) {
+                    JOptionPane.showMessageDialog(this, "Appointment #" + apptNo + " has been CANCELLED.", "Appointment Cancelled", JOptionPane.INFORMATION_MESSAGE);
+                    reloadCurrentFilter();
+                }
+            } catch (SQLException ex) {
+                JOptionPane.showMessageDialog(this, "Database error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
     }
 }

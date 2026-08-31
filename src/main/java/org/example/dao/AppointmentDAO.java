@@ -94,6 +94,20 @@ public class AppointmentDAO {
     }
 
     /**
+     * Marks a "Scheduled" appointment as "Confirmed" by the attending doctor.
+     * Only doctors should be able to trigger this (enforced in the UI layer).
+     */
+    public boolean confirmAppointment(int appointmentNumber) throws SQLException {
+        String sql = "UPDATE appointments SET status = 'Confirmed' WHERE appointment_number = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, appointmentNumber);
+            int rows = stmt.executeUpdate();
+            return rows > 0;
+        }
+    }
+
+    /**
      * Updates an existing appointment's details.
      */
     public boolean updateAppointment(Appointment appt) throws SQLException {
