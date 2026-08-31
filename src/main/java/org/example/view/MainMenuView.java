@@ -8,16 +8,7 @@ import java.awt.Font;
 import java.awt.GridLayout;
 import java.sql.SQLException;
 import java.util.List;
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
-import javax.swing.JTable;
-import javax.swing.SwingConstants;
+import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import org.example.model.Appointment;
@@ -45,6 +36,20 @@ public class MainMenuView extends JFrame {
         this.appointmentService = new AppointmentService();
         initializeUI();
         loadRecentAppointments();
+        showWelcomePopup();
+    }
+
+    private void showWelcomePopup() {
+        String name = currentUser.getFullName() != null ? currentUser.getFullName() : "User";
+        String role = currentUser.getRole() != null ? currentUser.getRole() : "Staff";
+        SwingUtilities.invokeLater(() -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Welcome back, " + name + " (" + role + ")!",
+                    "Login Successful",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+        });
     }
 
     private void initializeUI() {
@@ -72,7 +77,10 @@ public class MainMenuView extends JFrame {
             "Main Control Center (" + currentUser.getRole() + " Portal) - Colombo, Sri Lanka",
             currentUser
         );
-        add(headerPanel, BorderLayout.NORTH);
+        JPanel topStack = new JPanel(new BorderLayout());
+        topStack.add(headerPanel, BorderLayout.NORTH);
+        topStack.add(buildWelcomeBanner(), BorderLayout.SOUTH);
+        add(topStack, BorderLayout.NORTH);
 
         // ------------------ Center Dashboard Content ------------------
         JPanel centerPanel = new JPanel(new BorderLayout(15, 15));
@@ -170,6 +178,44 @@ public class MainMenuView extends JFrame {
         });
 
         btnExit.addActionListener(e -> confirmExit());
+    }
+
+    private JPanel buildWelcomeBanner() {
+        String name = currentUser.getFullName() != null ? currentUser.getFullName() : "User";
+        String role = currentUser.getRole() != null ? currentUser.getRole() : "Staff";
+
+        Color accent;
+        if ("Admin".equalsIgnoreCase(role)) {
+            accent = new Color(24, 90, 157);
+        } else if ("Doctor".equalsIgnoreCase(role)) {
+            accent = new Color(38, 140, 60);
+        } else {
+            accent = new Color(220, 110, 0);
+        }
+
+        JPanel banner = new JPanel(new BorderLayout(10, 4));
+        banner.setBackground(new Color(255, 255, 255));
+        banner.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createMatteBorder(0, 6, 0, 0, accent),
+                BorderFactory.createEmptyBorder(14, 18, 14, 18)
+        ));
+
+        JLabel lblWelcome = new JLabel("Welcome back, " + name + "!");
+        lblWelcome.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        lblWelcome.setForeground(UIHelper.COLOR_DARK_TEXT);
+
+        JLabel lblRole = new JLabel("Logged in as " + role + " \u2022 " + java.time.LocalDate.now());
+        lblRole.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        lblRole.setForeground(new Color(100, 110, 125));
+
+        JPanel textPanel = new JPanel();
+        textPanel.setOpaque(false);
+        textPanel.setLayout(new BoxLayout(textPanel, BoxLayout.Y_AXIS));
+        textPanel.add(lblWelcome);
+        textPanel.add(lblRole);
+
+        banner.add(textPanel, BorderLayout.WEST);
+        return banner;
     }
 
     private JPanel buildActionMenuPanel() {
