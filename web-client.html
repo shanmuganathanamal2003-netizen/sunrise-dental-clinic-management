@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sunrise Dental Clinic - Web Appointment Viewer</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<h1>Sunrise Dental Clinic - Web Appointment Viewer</h1>
+<p class="subtitle">Distributed web client fetching live data from the Java REST API at localhost:8080</p>
+
+<div class="controls">
+    <select id="filterSelect">
+        <option value="">All Appointments</option>
+        <option value="today">Today Only</option>
+        <option value="status:Scheduled">Status: Scheduled</option>
+        <option value="status:Confirmed">Status: Confirmed</option>
+        <option value="status:Billed">Status: Billed</option>
+        <option value="status:Cancelled">Status: Cancelled</option>
+    </select>
+    <button onclick="loadAppointments()">Refresh</button>
+</div>
+
+<div id="errorBox"></div>
+
+<table id="apptTable">
+    <thead>
+    <tr>
+        <th>Appt #</th>
+        <th>Patient Name</th>
+        <th>Dentist</th>
+        <th>Treatment</th>
+        <th>Date</th>
+        <th>Time</th>
+        <th>Status</th>
+    </tr>
+    </thead>
+    <tbody id="apptBody">
+    </tbody>
+</table>
+
+<script>
+    async function loadAppointments() {
+        const errorBox = document.getElementById('errorBox');
+        const body = document.getElementById('apptBody');
+        errorBox.textContent = '';
+        body.innerHTML = '<tr><td colspan="7">Loading...</td></tr>';
+
+        const filterValue = document.getElementById('filterSelect').value;
+        let url = 'http://localhost:8080/api/appointments';
+
+        if (filterValue === 'today') {
+            url += '?filter=today';
+        } else if (filterValue.startsWith('status:')) {
+            url += '?status=' + encodeURIComponent(filterValue.split(':')[1]);
+        }
+
+        try {
+            const response = await fetch(url);
+            const data = await response.json();
+
+            if (data.error) {
+                errorBox.textContent = 'Error: ' + data.error;
+                body.innerHTML = '';
+                return;
+            }
+
+            body.innerHTML = '';
+            data.forEach(a => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${a.appointmentNumber}</td>
+                    <td>${a.patientName}</td>
+                    <td>${a.dentistName}</td>
+                    <td>${a.treatmentType}</td>
+                    <td>${a.appointmentDate}</td>
+                    <td>${a.appointmentTime}</td>
+                    <td class="status-${a.status}">${a.status}</td>
+                `;
+                body.appendChild(row);
+            });
+
+            if (data.length === 0) {
+                body.innerHTML = '<tr><td colspan="7">No appointments found.</td></tr>';
+            }
+        } catch (err) {
+            errorBox.textContent = 'Could not connect to the API server. Make sure the Java app is running.';
+            body.innerHTML = '';
+        }
+    }
+
+    loadAppointments();
+</script>
+
+</body>
+</html>
