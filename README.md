@@ -54,12 +54,26 @@ An advanced, user-friendly, and menu-driven Java Desktop Application developed f
 9. **Built-in System Documentation (`HelpView`)**:
     - Integrated operational guide explaining role permissions, booking steps, billing rules, and troubleshooting.
 
+10. **Web Services Layer & REST API (`ApiServer`)**:
+    - A lightweight embedded HTTP server (Java `com.sun.net.httpserver`) runs alongside the Swing desktop app on **port `8080`**, exposing live appointment data as JSON — without altering any existing Swing screens or business logic.
+    - **Endpoint**: `GET /api/appointments`
+        - No query params → returns **all** appointments.
+        - `?id={appointmentNumber}` → returns a single appointment by its appointment number.
+        - `?status={status}` → returns appointments filtered by status (`Scheduled`, `Confirmed`, `Billed`, `Cancelled`).
+        - `?filter=today` → returns only today's appointments.
+    - **Response format**: JSON array (or single JSON object for `?id=`), including `appointmentNumber`, `patientName`, `dentistName`, `treatmentType`, `appointmentDate`, `appointmentTime`, and `status`.
+    - **CORS enabled** (`Access-Control-Allow-Origin: *`) so browser-based clients can call it directly.
+    - **Web client** (`web-client.html`): a standalone HTML/CSS/JS front end (styled with `styles.css`) that consumes this REST API — lets staff view a live, filterable, auto-refreshing appointments table (All / Today Only / by Status) straight from a browser, independent of the desktop app's UI.
+    - Demonstrates the system as a **distributed application**: the Java/Swing/MySQL core remains the source of truth, while the REST layer and web client act as an independent, loosely-coupled presentation tier.
+
 ---
 
 ## 🛠️ Technology Stack & Design Patterns
 
 - **Language & Runtime**: Java JDK 17 (or latest LTS)
 - **GUI Framework**: Java Swing (Native System Look & Feel)
+- **Web Services**: Embedded Java HTTP server (`com.sun.net.httpserver`), REST-style JSON API (`ApiServer.java`)
+- **Web Client**: HTML5 / CSS3 / vanilla JavaScript (`web-client.html`, `styles.css`) using the Fetch API
 - **Database**: MySQL via WAMP Server (port `3306`)
 - **Persistence Driver**: JDBC with MySQL Connector/J (`8.3.0`)
 - **Build System**: Apache Maven (`pom.xml`)
@@ -67,7 +81,7 @@ An advanced, user-friendly, and menu-driven Java Desktop Application developed f
     - **Singleton Pattern**: Database connection manager ([`DBConnection.java`](src/main/java/org/example/db/DBConnection.java)).
     - **DAO (Data Access Object) Pattern**: [`UserDAO`](src/main/java/org/example/dao/UserDAO.java), [`AppointmentDAO`](src/main/java/org/example/dao/AppointmentDAO.java), [`TreatmentDAO`](src/main/java/org/example/dao/TreatmentDAO.java), [`ReportDAO`](src/main/java/org/example/dao/ReportDAO.java).
     - **Service / Business Logic Layer**: [`AppointmentService`](src/main/java/org/example/service/AppointmentService.java), [`BillingService`](src/main/java/org/example/service/BillingService.java).
-    - **MVC / Tiered Architecture**: Clear separation between `model`, `dao`, `service`, and `view`.
+    - **MVC / Tiered Architecture**: Clear separation between `model`, `dao`, `service`, and `view`, with an additional **web/API tier** ([`ApiServer.java`](src/main/java/org/example/ApiServer.java)) sitting alongside the desktop UI.
 
 ---
 
@@ -103,7 +117,13 @@ The system uses MySQL database `sunrise_dental_db` initialized via [`database.sq
 1. Navigate to:
    `src/main/java/org/example/Main.java`
 2. Right-click `Main.java` and select **Run 'Main.main()'**.
-3. The **Sunrise Dental Clinic - Staff Login** screen will launch!
+3. The **Sunrise Dental Clinic - Staff Login** screen will launch, and the embedded REST API will start automatically at `http://localhost:8080/api/appointments`.
+
+---
+
+### Step 4: Use the Web Client
+1. With the desktop app still running (so the API server is live), open `web-client.html` directly in any web browser.
+2. Use the filter dropdown (**All Appointments**, **Today Only**, or by **Status**) and click **Refresh** to fetch live appointment data from the REST API.
 
 ---
 
