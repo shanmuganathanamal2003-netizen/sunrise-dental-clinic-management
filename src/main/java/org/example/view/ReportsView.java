@@ -42,7 +42,6 @@ public class ReportsView extends JFrame {
     private JTable tblTreatmentSummary;
     private JLabel lblFinancialSummary;
 
-    private JButton btnRefresh;
     private JButton btnBack;
 
     public ReportsView(User user) {
@@ -94,15 +93,13 @@ public class ReportsView extends JFrame {
         // ------------------ Bottom Buttons ------------------
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 12));
 
-        btnRefresh = UIHelper.createSecondaryButton("Refresh Data", new Dimension(130, 36));
         btnBack = UIHelper.createSecondaryButton("Back to Dashboard", new Dimension(150, 36));
 
-        buttonPanel.add(btnRefresh);
+
         buttonPanel.add(btnBack);
         add(buttonPanel, BorderLayout.SOUTH);
 
         // Listeners
-        btnRefresh.addActionListener(e -> loadAllReports());
         btnBack.addActionListener(e -> {
             UIHelper.navigate(this, new MainMenuView(currentUser));
         });

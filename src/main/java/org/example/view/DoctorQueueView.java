@@ -57,7 +57,6 @@ public class DoctorQueueView extends JFrame {
     private JButton btnViewPatientHistory;
     private JButton btnConfirmAppt;
     private JButton btnCancelAppt;
-    private JButton btnRefresh;
     private JButton btnBack;
 
     public DoctorQueueView(User user) {
@@ -209,14 +208,12 @@ public class DoctorQueueView extends JFrame {
         btnViewPatientHistory = UIHelper.createSecondaryButton("View Patient History", new Dimension(170, 36));
         btnConfirmAppt = UIHelper.createPrimaryButton("✅ Confirm Appointment", new Dimension(190, 36));
         btnCancelAppt = UIHelper.createDangerButton("❌ Cancel Appointment", new Dimension(180, 36));
-        btnRefresh = UIHelper.createSecondaryButton("Refresh Schedule", new Dimension(145, 36));
         btnBack = UIHelper.createSecondaryButton("Back to Dashboard", new Dimension(150, 36));
 
         buttonPanel.add(btnAddNotes);
         buttonPanel.add(btnViewPatientHistory);
         buttonPanel.add(btnConfirmAppt);
         buttonPanel.add(btnCancelAppt);
-        buttonPanel.add(btnRefresh);
         buttonPanel.add(btnBack);
 
         add(buttonPanel, BorderLayout.SOUTH);
@@ -251,7 +248,6 @@ public class DoctorQueueView extends JFrame {
             }
         });
 
-        btnRefresh.addActionListener(e -> reloadCurrentFilter());
 
         btnBack.addActionListener(e -> {
             UIHelper.navigate(this, new MainMenuView(currentUser));

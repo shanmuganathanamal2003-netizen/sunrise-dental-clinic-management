@@ -165,12 +165,10 @@ public class MainMenuView extends JFrame {
         JPanel footerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 12));
 
         JButton btnHelp = UIHelper.createSecondaryButton("System Help Guide", new Dimension(160, 34));
-        JButton btnRefresh = UIHelper.createSecondaryButton("Refresh Overview", new Dimension(160, 34));
         JButton btnLogout = UIHelper.createSecondaryButton("Logout", new Dimension(110, 34));
         JButton btnExit = UIHelper.createDangerButton("Exit System", new Dimension(120, 34));
 
         footerPanel.add(btnHelp);
-        footerPanel.add(btnRefresh);
         footerPanel.add(Box.createRigidArea(new Dimension(20, 0)));
         footerPanel.add(btnLogout);
         footerPanel.add(btnExit);
@@ -178,7 +176,6 @@ public class MainMenuView extends JFrame {
         add(footerPanel, BorderLayout.SOUTH);
 
         btnHelp.addActionListener(e -> new HelpView(MainMenuView.this).setVisible(true));
-        btnRefresh.addActionListener(e -> loadRecentAppointments());
 
         btnLogout.addActionListener(e -> {
             int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to log out?", "Logout", JOptionPane.YES_NO_OPTION);
