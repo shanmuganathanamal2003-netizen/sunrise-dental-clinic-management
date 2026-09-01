@@ -216,7 +216,7 @@ public class BillView extends JFrame {
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 12, 12));
 
         btnPatientHistory = UIHelper.createSecondaryButton("Patient History", new Dimension(150, 36));
-        btnSaveBill = UIHelper.createSuccessButton("Save Bill to DB", new Dimension(150, 36));
+        btnSaveBill = UIHelper.createSuccessButton("Confirm Bill", new Dimension(150, 36));
         btnPrint = UIHelper.createPrimaryButton("Print / Save as PDF", new Dimension(170, 36));
         btnBack = UIHelper.createSecondaryButton("Back to Dashboard", new Dimension(150, 36));
 
@@ -378,7 +378,7 @@ public class BillView extends JFrame {
 
                 JOptionPane.showMessageDialog(
                     this,
-                    "Billing details successfully updated and saved in MySQL database!\nTotal: LKR " + total,
+                    "Billing details successfully updated and bill is confirmed!\nTotal: LKR " + total,
                     "Bill Saved",
                     JOptionPane.INFORMATION_MESSAGE
                 );

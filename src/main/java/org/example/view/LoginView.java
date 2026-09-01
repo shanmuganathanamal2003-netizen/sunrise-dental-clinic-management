@@ -109,13 +109,6 @@ public class LoginView extends JFrame {
         txtPassword.setFont(UIHelper.FONT_REGULAR);
         formFields.add(txtPassword, gbc);
 
-        // Default Credentials Hint
-        gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 2;
-        JLabel lblHint = new JLabel("Default logins: admin / admin123  or  staff / staff123", SwingConstants.CENTER);
-        lblHint.setFont(new Font("Segoe UI", Font.ITALIC, 11));
-        lblHint.setForeground(new Color(0, 90, 190));
-        formFields.add(lblHint, gbc);
-
         cardPanel.add(formFields, BorderLayout.NORTH);
 
         // Buttons Section

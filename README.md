@@ -7,49 +7,52 @@ An advanced, user-friendly, and menu-driven Java Desktop Application developed f
 ## 🌟 Core System Modules & Features
 
 1. **Role-Based User Authentication**:
-   - Secure authentication for authorized clinic roles: **Administrator**, **Receptionist**, and **Doctor**.
-   - User credentials are pre-configured in the database and protected with role-specific access permissions.
-   - Pre-seeded default credentials: `admin` / `admin123`, `staff` / `staff123`, `doctor1` / `doctor123`, `doctor2` / `doctor123`.
+    - Secure authentication for authorized clinic roles: **Administrator**, **Receptionist**, and **Doctor**.
+    - User credentials are pre-configured in the database and protected with role-specific access permissions.
+    - Personalized welcome message and dashboard banner shown on login, greeting the staff member by name and role.
 
 2. **Interactive Live Dashboard & Reusable Menu Bar (`JMenuBar`)**:
-   - Standardized top navigation menu (`File`, `Appointments`, `Patients & History`, `Billing`, `Reports`, `Help`) across all screens.
-   - Live overview table of recent clinic appointments with direct navigation.
-   - Role-customized dashboard actions tailored for Admin, Doctor, and Receptionist workflows.
+    - Standardized top navigation menu (`File`, `Appointments`, `Patients & History`, `Billing`, `Reports`, `Help`) across all screens.
+    - Live overview table of recent clinic appointments with direct navigation.
+    - Role-customized dashboard actions tailored for Admin, Doctor, and Receptionist workflows.
 
 3. **Add New Appointments (New & Registered Patients)**:
-   - Auto-generated Appointment Number.
-   - Mode selector for **Registered / Old Patients** (auto-fills demographics) or **New Patients**.
-   - Patient age specification starting from 1 month (unit selector for Months / Years).
-   - Interactive calendar date picker dialog.
-   - **Double-Booking Prevention**: Validates doctor availability and prevents conflicting time slots.
-   - Structured fee breakdown for Consultation Fee, Procedure Cost, and Total Amount.
+    - Auto-generated Appointment Number.
+    - Mode selector for **Registered / Old Patients** (auto-fills demographics) or **New Patients**.
+    - Patient age specification starting from 1 month (unit selector for Months / Years).
+    - Interactive calendar date picker dialog.
+    - **Double-Booking Prevention**: Validates doctor availability and prevents conflicting time slots.
+    - Structured fee breakdown for Consultation Fee, Procedure Cost, and Total Amount.
 
 4. **Doctor Patient Schedule & Clinical Queue (`DoctorQueueView`)**:
-   - Dedicated portal for doctors to view their appointment queue.
-   - Quick date filters (**Today**, **Tomorrow**, **Next 7 Days**, or custom calendar date).
-   - Add & update clinical diagnosis notes and prescriptions directly into patient records.
+    - Dedicated portal for doctors to view their appointment queue.
+    - Quick date filters (**Today**, **Tomorrow**, **Next 7 Days**, or custom calendar date), combined with a **Status filter** (`All`, `Scheduled`, `Confirmed`, `Cancelled`).
+    - **Confirm Appointment**: doctors can formally confirm a scheduled appointment, restricted to the doctor's own queue only.
+    - **Cancel Appointment**: doctors can cancel directly from their queue; a cancellation reason is **required** before the cancellation is accepted.
+    - Add & update clinical diagnosis notes and prescriptions directly into patient records.
 
 5. **Patient Medical History & Multi-Criteria Search (`PatientHistoryView`)**:
-   - Search by Patient Name, Phone Number, Patient ID, or Appointment Number.
-   - Displays full patient journey: demographics, total visits, total billing spent, doctor diagnosis notes, and chronological visit history.
+    - Search by Patient Name, Phone Number, Patient ID, or Appointment Number.
+    - Displays full patient journey: demographics, total visits, total billing spent, doctor diagnosis notes, and chronological visit history.
 
 6. **All Confirmed Appointments Table (`AppointmentListView`)**:
-   - Interactive `JTable` listing all confirmed appointments with color-coded status badges.
-   - Instant search, status filtering (`All`, `Scheduled`, `Billed`), double-click row to bill, and direct table printing.
+    - Interactive `JTable` listing all appointments with color-coded status badges (`Scheduled`, `Confirmed`, `Billed`, `Cancelled`).
+    - Instant search, status filtering (`All Statuses`, `Scheduled`, `Confirmed`, `Billed`, `Cancelled`), double-click row to bill, and direct table printing.
+    - **Cancel Appointment**: Admin/Receptionist can cancel with a **required** cancellation reason; hovering over a cancelled row's status shows the recorded reason as a tooltip.
+    - Note: only doctors can *confirm* an appointment (from their own queue) — Admin/Receptionist can book and cancel, but not confirm.
 
 7. **Calculate & Print Patient Bill (`BillView`)**:
-   - Loads appointments by Patient Name or Appointment Number.
-   - Computes: `Total Bill = Doctor Consultation Fee + Treatment Procedure Cost`.
-   - Generates official clinic invoice with receipt numbers (`REC-XXXX`).
-   - Updates appointment status to `Billed` in the MySQL database.
-   - Native Java print dialog with hardware printing and *Microsoft Print to PDF* support.
+    - Loads appointments by Patient Name or Appointment Number.
+    - Computes: `Total Bill = Doctor Consultation Fee + Treatment Procedure Cost`.
+    - **Confirm Bill**: generates official clinic invoice with receipt numbers (`REC-XXXX`) and updates appointment status to `Billed` in the MySQL database.
+    - Native Java print dialog with hardware printing and *Microsoft Print to PDF* support.
 
 8. **Management & Revenue Reports (`ReportsView`)**:
-   - Clinic revenue summaries, doctor workload metrics, and treatment popularity statistics.
-   - Printable analytics sheets for administrative decision-making.
+    - Clinic revenue summaries, doctor workload metrics, and treatment popularity statistics.
+    - Printable analytics sheets for administrative decision-making.
 
 9. **Built-in System Documentation (`HelpView`)**:
-   - Integrated operational guide explaining role permissions, booking steps, billing rules, and troubleshooting.
+    - Integrated operational guide explaining role permissions, booking steps, billing rules, and troubleshooting.
 
 ---
 
@@ -61,10 +64,10 @@ An advanced, user-friendly, and menu-driven Java Desktop Application developed f
 - **Persistence Driver**: JDBC with MySQL Connector/J (`8.3.0`)
 - **Build System**: Apache Maven (`pom.xml`)
 - **Design Patterns Implemented**:
-  - **Singleton Pattern**: Database connection manager ([`DBConnection.java`](src/main/java/org/example/db/DBConnection.java)).
-  - **DAO (Data Access Object) Pattern**: [`UserDAO`](src/main/java/org/example/dao/UserDAO.java), [`AppointmentDAO`](src/main/java/org/example/dao/AppointmentDAO.java), [`TreatmentDAO`](src/main/java/org/example/dao/TreatmentDAO.java), [`ReportDAO`](src/main/java/org/example/dao/ReportDAO.java).
-  - **Service / Business Logic Layer**: [`AppointmentService`](src/main/java/org/example/service/AppointmentService.java), [`BillingService`](src/main/java/org/example/service/BillingService.java).
-  - **MVC / Tiered Architecture**: Clear separation between `model`, `dao`, `service`, and `view`.
+    - **Singleton Pattern**: Database connection manager ([`DBConnection.java`](src/main/java/org/example/db/DBConnection.java)).
+    - **DAO (Data Access Object) Pattern**: [`UserDAO`](src/main/java/org/example/dao/UserDAO.java), [`AppointmentDAO`](src/main/java/org/example/dao/AppointmentDAO.java), [`TreatmentDAO`](src/main/java/org/example/dao/TreatmentDAO.java), [`ReportDAO`](src/main/java/org/example/dao/ReportDAO.java).
+    - **Service / Business Logic Layer**: [`AppointmentService`](src/main/java/org/example/service/AppointmentService.java), [`BillingService`](src/main/java/org/example/service/BillingService.java).
+    - **MVC / Tiered Architecture**: Clear separation between `model`, `dao`, `service`, and `view`.
 
 ---
 
@@ -77,7 +80,7 @@ The system uses MySQL database `sunrise_dental_db` initialized via [`database.sq
 | **`users`** | `user_id` | Authorized system accounts (`Admin`, `Receptionist`, `Doctor`) pre-configured for secure login. |
 | **`patients`** | `patient_id` | Patient demographic details, contact info, and medical histories. |
 | **`treatments`** | `treatment_id` | Standard dental treatment catalog with baseline costs and consultation fees. |
-| **`appointments`** | `appointment_number` | Patient bookings, assigned doctors, clinical diagnosis notes, fee breakdowns, and status (`Scheduled`, `Billed`, `Cancelled`). |
+| **`appointments`** | `appointment_number` | Patient bookings, assigned doctors, clinical diagnosis notes, fee breakdowns, cancellation reason, and status (`Scheduled`, `Confirmed`, `Billed`, `Cancelled`). |
 
 ---
 
@@ -105,6 +108,8 @@ The system uses MySQL database `sunrise_dental_db` initialized via [`database.sq
 ---
 
 ## 🔑 Login Credentials
+
+For security, login credentials are no longer displayed on the login screen itself. For testing purposes, use:
 
 | Username | Password | Role | Full Name |
 | :--- | :--- | :--- | :--- |
