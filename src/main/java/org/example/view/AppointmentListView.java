@@ -10,18 +10,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.sql.SQLException;
 import java.util.List;
-import javax.swing.BorderFactory;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.JTextField;
-import javax.swing.ListSelectionModel;
-import javax.swing.SwingConstants;
+import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -46,6 +35,7 @@ public class AppointmentListView extends JFrame {
     // Search and Filter Controls
     private JTextField txtSearch;
     private JComboBox<String> cmbStatusFilter;
+    private final java.util.Map<Integer, String> cancellationReasons = new java.util.HashMap<>();
     private JButton btnSearch;
     private JButton btnReset;
     private JLabel lblTotalRecords;
@@ -178,6 +168,17 @@ public class AppointmentListView extends JFrame {
                     setForeground(new Color(210, 100, 0));
                     setFont(getFont().deriveFont(Font.BOLD));
                 }
+                if ("Cancelled".equalsIgnoreCase(val)) {
+                    int modelRow = table.convertRowIndexToModel(row);
+                    int apptNo = (int) tableModel.getValueAt(modelRow, 0);
+                    String reasonText = cancellationReasons.get(apptNo);
+                    if (reasonText == null || reasonText.trim().isEmpty()) {
+                        reasonText = "No reason recorded";
+                    }
+                    ((JComponent) c).setToolTipText("Cancellation Reason: " + reasonText);
+                } else {
+                    ((JComponent) c).setToolTipText(null);
+                }
                 return c;
             }
         });
@@ -273,6 +274,9 @@ public class AppointmentListView extends JFrame {
                     if (!selectedStatus.equalsIgnoreCase(a.getStatus())) {
                         continue;
                     }
+                }
+                if ("Cancelled".equalsIgnoreCase(a.getStatus())) {
+                    cancellationReasons.put(a.getAppointmentNumber(), a.getCancellationReason());
                 }
 
                 tableModel.addRow(new Object[]{

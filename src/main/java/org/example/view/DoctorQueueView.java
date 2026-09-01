@@ -12,19 +12,7 @@ import java.awt.Insets;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
-import javax.swing.BorderFactory;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JDialog;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.JTextArea;
-import javax.swing.ListSelectionModel;
-import javax.swing.SwingConstants;
+import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import org.example.model.Appointment;
@@ -52,6 +40,7 @@ public class DoctorQueueView extends JFrame {
     private JButton btnNext7Days;
     private JButton btnPickDate;
     private JComboBox<String> cmbStatusFilter;
+    private final java.util.Map<Integer, String> cancellationReasons = new java.util.HashMap<>();
     private JLabel lblActiveFilter;
 
     // Current filter state
@@ -192,6 +181,17 @@ public class DoctorQueueView extends JFrame {
                 } else {
                     setForeground(new Color(210, 100, 0));
                     setFont(getFont().deriveFont(Font.BOLD));
+                }
+                if ("Cancelled".equalsIgnoreCase(val)) {
+                    int modelRow = table.convertRowIndexToModel(row);
+                    int apptNo = (int) tableModel.getValueAt(modelRow, 0);
+                    String reasonText = cancellationReasons.get(apptNo);
+                    if (reasonText == null || reasonText.trim().isEmpty()) {
+                        reasonText = "No reason recorded";
+                    }
+                    ((JComponent) c).setToolTipText("Cancellation Reason: " + reasonText);
+                } else {
+                    ((JComponent) c).setToolTipText(null);
                 }
                 return c;
             }
@@ -363,6 +363,9 @@ public class DoctorQueueView extends JFrame {
                     continue;
                 }
             }
+            if ("Cancelled".equalsIgnoreCase(a.getStatus())) {
+                cancellationReasons.put(a.getAppointmentNumber(), a.getCancellationReason());
+            }
             tableModel.addRow(new Object[]{
                     a.getAppointmentNumber(),
                     a.getPatientName(),
@@ -528,14 +531,27 @@ public class DoctorQueueView extends JFrame {
         );
 
         if (choice == JOptionPane.YES_OPTION) {
-            String reason = JOptionPane.showInputDialog(
-                    this,
-                    "Optional: Enter cancellation reason:",
-                    "Cancellation Reason",
-                    JOptionPane.PLAIN_MESSAGE
-            );
+            String reason = null;
+            boolean validReason = false;
+            while (!validReason) {
+                reason = JOptionPane.showInputDialog(
+                        this,
+                        "Please enter a reason for cancelling this appointment (required):",
+                        "Cancellation Reason",
+                        JOptionPane.PLAIN_MESSAGE
+                );
+
+                if (reason == null) {
+                    return;
+                }
+                if (reason.trim().isEmpty()) {
+                    JOptionPane.showMessageDialog(this, "A cancellation reason is required. Please try again.", "Reason Required", JOptionPane.WARNING_MESSAGE);
+                    continue;
+                }
+                validReason = true;
+            }
             try {
-                boolean success = appointmentService.cancelAppointment(apptNo, reason);
+                boolean success = appointmentService.cancelAppointment(apptNo, reason.trim());
                 if (success) {
                     JOptionPane.showMessageDialog(this, "Appointment #" + apptNo + " has been CANCELLED.", "Appointment Cancelled", JOptionPane.INFORMATION_MESSAGE);
                     reloadCurrentFilter();
