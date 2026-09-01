@@ -192,7 +192,7 @@ public class LoginView extends JFrame {
                     JOptionPane.INFORMATION_MESSAGE
                 );
                 // Open Main Menu Dashboard
-                UIHelper.navigate(this, new MainMenuView(user));
+                UIHelper.navigate(this, new MainMenuView(user, true));
             } else {
                 JOptionPane.showMessageDialog(
                     this,

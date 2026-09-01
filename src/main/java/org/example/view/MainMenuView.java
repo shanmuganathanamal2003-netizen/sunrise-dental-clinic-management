@@ -11,6 +11,7 @@ import java.util.List;
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+
 import org.example.model.Appointment;
 import org.example.model.User;
 import org.example.service.AppointmentService;
@@ -19,7 +20,7 @@ import org.example.view.components.UIHelper;
 
 /**
  * MainMenuView - Interactive Dashboard & Menu-Driven Hub
- * 
+ * <p>
  * Provides quick-access navigation to all core modules and recent appointments overview.
  */
 public class MainMenuView extends JFrame {
@@ -32,11 +33,17 @@ public class MainMenuView extends JFrame {
     private DefaultTableModel recentModel;
 
     public MainMenuView(User user) {
+        this(user, false);
+    }
+
+    public MainMenuView(User user, boolean isFreshLogin) {
         this.currentUser = user;
         this.appointmentService = new AppointmentService();
         initializeUI();
         loadRecentAppointments();
-        showWelcomePopup();
+        if (isFreshLogin) {
+            showWelcomePopup();
+        }
     }
 
     private void showWelcomePopup() {
@@ -73,9 +80,9 @@ public class MainMenuView extends JFrame {
 
         // ------------------ Header Panel ------------------
         JPanel headerPanel = UIHelper.createHeaderBanner(
-            "SUNRISE DENTAL CLINIC MANAGEMENT DASHBOARD",
-            "Main Control Center (" + currentUser.getRole() + " Portal) - Colombo, Sri Lanka",
-            currentUser
+                "SUNRISE DENTAL CLINIC MANAGEMENT DASHBOARD",
+                "Main Control Center (" + currentUser.getRole() + " Portal) - Colombo, Sri Lanka",
+                currentUser
         );
         JPanel topStack = new JPanel(new BorderLayout());
         topStack.add(headerPanel, BorderLayout.NORTH);
@@ -95,16 +102,19 @@ public class MainMenuView extends JFrame {
 
         JPanel recentPanel = new JPanel(new BorderLayout(8, 8));
         recentPanel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createTitledBorder(isDoctor ? "My Assigned Appointments Overview" : "Recent Clinic Appointments Overview"),
-            BorderFactory.createEmptyBorder(8, 8, 8, 8)
+                BorderFactory.createTitledBorder(isDoctor ? "My Assigned Appointments Overview" : "Recent Clinic Appointments Overview"),
+                BorderFactory.createEmptyBorder(8, 8, 8, 8)
         ));
 
-        String[] cols = isDoctor 
-            ? new String[]{"Appt #", "Patient Name", "Age", "Date", "Time", "Status"}
-            : new String[]{"Appt #", "Patient Name", "Age", "Doctor", "Date", "Status"};
+        String[] cols = isDoctor
+                ? new String[]{"Appt #", "Patient Name", "Age", "Date", "Time", "Status"}
+                : new String[]{"Appt #", "Patient Name", "Age", "Doctor", "Date", "Status"};
 
         recentModel = new DefaultTableModel(cols, 0) {
-            @Override public boolean isCellEditable(int r, int c) { return false; }
+            @Override
+            public boolean isCellEditable(int r, int c) {
+                return false;
+            }
         };
         tblRecent = new JTable(recentModel);
         tblRecent.setFont(new Font("Segoe UI", Font.PLAIN, 12));
@@ -279,8 +289,8 @@ public class MainMenuView extends JFrame {
         }
 
         actionMenuPanel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createTitledBorder("Quick Action Navigation Menu (" + role + ")"),
-            BorderFactory.createEmptyBorder(12, 12, 12, 12)
+                BorderFactory.createTitledBorder("Quick Action Navigation Menu (" + role + ")"),
+                BorderFactory.createEmptyBorder(12, 12, 12, 12)
         ));
 
         return actionMenuPanel;
@@ -295,8 +305,8 @@ public class MainMenuView extends JFrame {
         button.setForeground(UIHelper.COLOR_PRIMARY);
         button.setHorizontalAlignment(SwingConstants.LEFT);
         button.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(180, 205, 230), 1),
-            BorderFactory.createEmptyBorder(10, 15, 10, 15)
+                BorderFactory.createLineBorder(new Color(180, 205, 230), 1),
+                BorderFactory.createEmptyBorder(10, 15, 10, 15)
         ));
         button.setUI(new javax.swing.plaf.basic.BasicButtonUI());
         return button;
@@ -320,21 +330,21 @@ public class MainMenuView extends JFrame {
                 Appointment a = all.get(i);
                 if (isDoctor) {
                     recentModel.addRow(new Object[]{
-                        a.getAppointmentNumber(),
-                        a.getPatientName(),
-                        a.getPatientAge() != null ? a.getPatientAge() : "1 Month",
-                        a.getAppointmentDate(),
-                        a.getAppointmentTime(),
-                        a.getStatus()
+                            a.getAppointmentNumber(),
+                            a.getPatientName(),
+                            a.getPatientAge() != null ? a.getPatientAge() : "1 Month",
+                            a.getAppointmentDate(),
+                            a.getAppointmentTime(),
+                            a.getStatus()
                     });
                 } else {
                     recentModel.addRow(new Object[]{
-                        a.getAppointmentNumber(),
-                        a.getPatientName(),
-                        a.getPatientAge() != null ? a.getPatientAge() : "1 Month",
-                        a.getDentistName(),
-                        a.getAppointmentDate(),
-                        a.getStatus()
+                            a.getAppointmentNumber(),
+                            a.getPatientName(),
+                            a.getPatientAge() != null ? a.getPatientAge() : "1 Month",
+                            a.getDentistName(),
+                            a.getAppointmentDate(),
+                            a.getStatus()
                     });
                 }
             }
@@ -345,10 +355,10 @@ public class MainMenuView extends JFrame {
 
     private void confirmExit() {
         int confirm = JOptionPane.showConfirmDialog(
-            this,
-            "Are you sure you want to exit Sunrise Dental Clinic Management System?",
-            "Exit Confirmation",
-            JOptionPane.YES_NO_OPTION
+                this,
+                "Are you sure you want to exit Sunrise Dental Clinic Management System?",
+                "Exit Confirmation",
+                JOptionPane.YES_NO_OPTION
         );
         if (confirm == JOptionPane.YES_OPTION) {
             System.exit(0);
