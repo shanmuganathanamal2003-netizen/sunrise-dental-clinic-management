@@ -31,7 +31,13 @@ public class Main {
             }
         }).start();
 
-        // Step 3: Launch Login window safely on Swing Event Dispatch Thread
+        // Step 3: Start the REST/HTTP web service in the background
+        new Thread(() -> {
+            ApiServer apiServer = new ApiServer();
+            apiServer.start(8080);
+        }).start();
+
+        // Step 4: Launch Login window safely on Swing Event Dispatch Thread
         SwingUtilities.invokeLater(() -> {
             LoginView loginView = new LoginView();
             loginView.setVisible(true);
