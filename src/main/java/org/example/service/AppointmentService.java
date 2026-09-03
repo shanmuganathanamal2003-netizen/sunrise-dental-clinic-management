@@ -6,6 +6,8 @@ import java.util.Map;
 import org.example.dao.AppointmentDAO;
 import org.example.dao.PatientDAO;
 import org.example.model.Appointment;
+import org.example.model.Patient;
+
 
 /**
  * AppointmentService - Business Logic Layer
@@ -103,6 +105,10 @@ public class AppointmentService {
             throw new IllegalArgumentException("Invalid appointment number.");
         }
         return appointmentDAO.cancelAppointment(appointmentNumber, reason);
+    }
+
+    public Patient getPatientDetails(int patientId) throws SQLException {
+        return patientDAO.getPatientById(patientId);
     }
 
     public boolean confirmAppointment(int appointmentNumber) throws SQLException {
