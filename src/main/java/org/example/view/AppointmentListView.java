@@ -18,6 +18,7 @@ import javax.swing.table.DefaultTableModel;
 import org.example.model.Appointment;
 import org.example.model.User;
 import org.example.service.AppointmentService;
+import org.example.service.EmailService;
 import org.example.view.components.AppMenuBar;
 import org.example.view.components.UIHelper;
 
@@ -357,15 +358,28 @@ public class AppointmentListView extends JFrame {
         );
 
         if (choice == JOptionPane.YES_OPTION) {
-            String reason = JOptionPane.showInputDialog(
-                this,
-                "Optional: Enter cancellation reason (e.g. Patient requested reschedule):",
-                "Cancellation Reason",
-                JOptionPane.PLAIN_MESSAGE
-            );
+            String reason = null;
+            boolean validReason = false;
+            while (!validReason) {
+                reason = JOptionPane.showInputDialog(
+                        this,
+                        "Please enter a reason for cancelling this appointment (required):",
+                        "Cancellation Reason",
+                        JOptionPane.PLAIN_MESSAGE
+                );
+
+                if (reason == null) {
+                    return;
+                }
+                if (reason.trim().isEmpty()) {
+                    JOptionPane.showMessageDialog(this, "A cancellation reason is required. Please try again.", "Reason Required", JOptionPane.WARNING_MESSAGE);
+                    continue;
+                }
+                validReason = true;
+            }
 
             try {
-                boolean success = appointmentService.cancelAppointment(apptNo, reason);
+                boolean success = appointmentService.cancelAppointment(apptNo, reason.trim());
                 if (success) {
                     JOptionPane.showMessageDialog(
                         this,
@@ -374,6 +388,17 @@ public class AppointmentListView extends JFrame {
                         JOptionPane.INFORMATION_MESSAGE
                     );
                     applyFilter();
+
+                    try {
+                        Appointment fullAppt = appointmentService.getAppointmentByNumber(apptNo);
+                        if (fullAppt != null && fullAppt.getPatientId() != null) {
+                            org.example.model.Patient p = appointmentService.getPatientDetails(fullAppt.getPatientId());
+                            if (p != null) {
+                                new EmailService().sendCancellationEmail(p.getEmail(), patientName, apptNo, reason.trim());
+                            }
+                        }
+                    } catch (SQLException ignored) {
+                    }
                 }
             } catch (SQLException ex) {
                 JOptionPane.showMessageDialog(this, "Database error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
