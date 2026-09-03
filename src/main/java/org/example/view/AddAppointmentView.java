@@ -74,6 +74,7 @@ public class AddAppointmentView extends JFrame {
     private JComboBox<String> cmbAgeUnit;
     private JTextField txtNewContact;
     private JTextField txtNewAddress;
+    private JTextField txtNewEmail;
     private JTextField txtNewMedicalNotes;
 
     // Common Appointment Controls
@@ -346,6 +347,19 @@ public class AddAppointmentView extends JFrame {
         txtNewAddress = new JTextField();
         txtNewAddress.setFont(UIHelper.FONT_REGULAR);
         panel.add(txtNewAddress, gbc);
+        r++;
+
+
+        // Email Address
+        gbc.gridx = 0; gbc.gridy = r;
+        JLabel lblEmail = new JLabel("Email Address:");
+        lblEmail.setFont(UIHelper.FONT_REGULAR);
+        panel.add(lblEmail, gbc);
+
+        gbc.gridx = 1;
+        txtNewEmail = new JTextField();
+        txtNewEmail.setFont(UIHelper.FONT_REGULAR);
+        panel.add(txtNewEmail, gbc);
         r++;
 
         // Medical History Notes
@@ -658,7 +672,9 @@ public class AddAppointmentView extends JFrame {
 
             // Create patient record
             try {
+                String email = txtNewEmail.getText().trim();
                 Patient newP = new Patient(patientName, patientAge, "Not Specified", contactNumber, address, medicalNotes);
+                newP.setEmail(email);
                 patientId = patientDAO.createPatient(newP);
             } catch (SQLException ex) {
                 JOptionPane.showMessageDialog(this, "Database error creating patient: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
@@ -742,6 +758,7 @@ public class AddAppointmentView extends JFrame {
         cmbAgeUnit.setSelectedIndex(1);
         txtNewContact.setText("");
         txtNewAddress.setText("");
+        txtNewEmail.setText("");
         txtNewMedicalNotes.setText("");
         txtAppointmentDate.setText(LocalDate.now().toString());
 

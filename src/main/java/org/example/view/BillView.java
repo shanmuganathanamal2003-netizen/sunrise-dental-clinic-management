@@ -22,16 +22,18 @@ import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
+
 import org.example.model.Appointment;
 import org.example.model.User;
 import org.example.service.AppointmentService;
 import org.example.service.BillingService;
+import org.example.service.EmailService;
 import org.example.view.components.AppMenuBar;
 import org.example.view.components.UIHelper;
 
 /**
  * BillView - Calculate & Print Patient Invoices & Receipts
- * 
+ * <p>
  * Allows staff to lookup an appointment by Patient Name or ID, calculate fees,
  * preview formatted receipt, save to database, and print/export to PDF.
  */
@@ -93,9 +95,9 @@ public class BillView extends JFrame {
 
         // ------------------ Top Header Banner ------------------
         JPanel headerPanel = UIHelper.createHeaderBanner(
-            "CALCULATE & PRINT PATIENT BILL",
-            "Billing and Invoicing Department - Fee computation, database updates, and receipt printing",
-            currentUser
+                "CALCULATE & PRINT PATIENT BILL",
+                "Billing and Invoicing Department - Fee computation, database updates, and receipt printing",
+                currentUser
         );
         add(headerPanel, BorderLayout.NORTH);
 
@@ -124,8 +126,8 @@ public class BillView extends JFrame {
         // 2. Details & Fee Calculation Form
         JPanel calcFormPanel = new JPanel(new GridBagLayout());
         calcFormPanel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createTitledBorder("Step 2: Fee Breakdown & Calculation"),
-            BorderFactory.createEmptyBorder(8, 10, 8, 10)
+                BorderFactory.createTitledBorder("Step 2: Fee Breakdown & Calculation"),
+                BorderFactory.createEmptyBorder(8, 10, 8, 10)
         ));
 
         GridBagConstraints gbc = new GridBagConstraints();
@@ -140,12 +142,15 @@ public class BillView extends JFrame {
         lblTreatmentVal = addInfoRow(calcFormPanel, gbc, row++, "Treatment:", "-");
         lblDateTimeVal = addInfoRow(calcFormPanel, gbc, row++, "Date & Time:", "-");
 
-        gbc.gridx = 0; gbc.gridy = row++; gbc.gridwidth = 2;
+        gbc.gridx = 0;
+        gbc.gridy = row++;
+        gbc.gridwidth = 2;
         calcFormPanel.add(new JLabel("--------------------------------------------------"), gbc);
         gbc.gridwidth = 1;
 
         // Fee Inputs
-        gbc.gridx = 0; gbc.gridy = row;
+        gbc.gridx = 0;
+        gbc.gridy = row;
         JLabel lblFeeTag = new JLabel("Consultation Fee (LKR):");
         lblFeeTag.setFont(UIHelper.FONT_BOLD);
         calcFormPanel.add(lblFeeTag, gbc);
@@ -156,7 +161,8 @@ public class BillView extends JFrame {
         calcFormPanel.add(txtConsultFee, gbc);
         row++;
 
-        gbc.gridx = 0; gbc.gridy = row;
+        gbc.gridx = 0;
+        gbc.gridy = row;
         JLabel lblCostTag = new JLabel("Treatment Cost (LKR):");
         lblCostTag.setFont(UIHelper.FONT_BOLD);
         calcFormPanel.add(lblCostTag, gbc);
@@ -168,14 +174,17 @@ public class BillView extends JFrame {
         row++;
 
         // Calculate Button
-        gbc.gridx = 0; gbc.gridy = row; gbc.gridwidth = 2;
+        gbc.gridx = 0;
+        gbc.gridy = row;
+        gbc.gridwidth = 2;
         btnCalculate = UIHelper.createPrimaryButton("Calculate Total Amount", new Dimension(220, 32));
         calcFormPanel.add(btnCalculate, gbc);
         gbc.gridwidth = 1;
         row++;
 
         // Total Amount Display
-        gbc.gridx = 0; gbc.gridy = row;
+        gbc.gridx = 0;
+        gbc.gridy = row;
         JLabel lblTotalTag = new JLabel("TOTAL BILL:");
         lblTotalTag.setFont(UIHelper.FONT_BOLD);
         lblTotalTag.setForeground(UIHelper.COLOR_PRIMARY);
@@ -193,8 +202,8 @@ public class BillView extends JFrame {
         // Right Side: Formatted Printable Receipt Area
         JPanel rightPanel = new JPanel(new BorderLayout(5, 5));
         rightPanel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createEmptyBorder(10, 10, 10, 15),
-            BorderFactory.createTitledBorder("Step 3: Printable Receipt Preview")
+                BorderFactory.createEmptyBorder(10, 10, 10, 15),
+                BorderFactory.createTitledBorder("Step 3: Printable Receipt Preview")
         ));
 
         txtReceiptArea = new JTextArea();
@@ -263,12 +272,15 @@ public class BillView extends JFrame {
     }
 
     private JLabel addInfoRow(JPanel panel, GridBagConstraints gbc, int row, String label, String defaultVal) {
-        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0.4;
+        gbc.gridx = 0;
+        gbc.gridy = row;
+        gbc.weightx = 0.4;
         JLabel lbl = new JLabel(label);
         lbl.setFont(UIHelper.FONT_REGULAR);
         panel.add(lbl, gbc);
 
-        gbc.gridx = 1; gbc.weightx = 0.6;
+        gbc.gridx = 1;
+        gbc.weightx = 0.6;
         JLabel val = new JLabel(defaultVal);
         val.setFont(UIHelper.FONT_BOLD);
         panel.add(val, gbc);
@@ -300,25 +312,25 @@ public class BillView extends JFrame {
 
                 txtConsultFee.setText(String.format("%.2f", appt.getConsultationFee()));
                 txtTreatmentCost.setText(String.format("%.2f", appt.getTreatmentCost()));
-                
+
                 double total = appt.getConsultationFee() + appt.getTreatmentCost();
                 lblCalculatedTotal.setText(String.format("LKR %,.2f", total));
 
                 generateReceiptText();
             } else {
                 JOptionPane.showMessageDialog(
-                    this,
-                    "No appointment found matching: " + query,
-                    "Appointment Not Found",
-                    JOptionPane.WARNING_MESSAGE
+                        this,
+                        "No appointment found matching: " + query,
+                        "Appointment Not Found",
+                        JOptionPane.WARNING_MESSAGE
                 );
             }
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(
-                this,
-                "Database error while loading appointment:\n" + ex.getMessage(),
-                "Database Error",
-                JOptionPane.ERROR_MESSAGE
+                    this,
+                    "Database error while loading appointment:\n" + ex.getMessage(),
+                    "Database Error",
+                    JOptionPane.ERROR_MESSAGE
             );
         }
     }
@@ -375,20 +387,29 @@ public class BillView extends JFrame {
                 currentAppointment.setStatus("Billed");
 
                 System.out.println("[Billing] Bill saved to database for Appointment #" + currentAppointment.getAppointmentNumber() + ", Total: LKR " + total);
-
+                try {
+                    if (currentAppointment.getPatientId() != null) {
+                        org.example.model.Patient p = appointmentService.getPatientDetails(currentAppointment.getPatientId());
+                        if (p != null) {
+                            new EmailService().sendBillEmail(p.getEmail(), currentAppointment.getPatientName(), currentAppointment.getAppointmentNumber(), total);
+                        }
+                    }
+                } catch (SQLException ignored) {
+                }
                 JOptionPane.showMessageDialog(
-                    this,
-                    "Billing details successfully updated and bill is confirmed!\nTotal: LKR " + total,
-                    "Bill Saved",
-                    JOptionPane.INFORMATION_MESSAGE
+
+                        this,
+                        "Billing details successfully updated and bill is confirmed!\nTotal: LKR " + total,
+                        "Bill Confirmed",
+                        JOptionPane.INFORMATION_MESSAGE
                 );
             }
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(
-                this,
-                "Database error while updating billing:\n" + ex.getMessage(),
-                "Database Error",
-                JOptionPane.ERROR_MESSAGE
+                    this,
+                    "Database error while updating billing:\n" + ex.getMessage(),
+                    "Database Error",
+                    JOptionPane.ERROR_MESSAGE
             );
         }
     }
@@ -401,18 +422,18 @@ public class BillView extends JFrame {
 
         try {
             boolean complete = txtReceiptArea.print(
-                new java.text.MessageFormat("Sunrise Dental Clinic - Official Receipt"),
-                new java.text.MessageFormat("Page {0}")
+                    new java.text.MessageFormat("Sunrise Dental Clinic - Official Receipt"),
+                    new java.text.MessageFormat("Page {0}")
             );
             if (complete) {
                 JOptionPane.showMessageDialog(this, "Printing completed successfully.", "Print Job Done", JOptionPane.INFORMATION_MESSAGE);
             }
         } catch (PrinterException ex) {
             JOptionPane.showMessageDialog(
-                this,
-                "Printing error: " + ex.getMessage() + "\n(You can select 'Microsoft Print to PDF' to save as PDF)",
-                "Print Error",
-                JOptionPane.ERROR_MESSAGE
+                    this,
+                    "Printing error: " + ex.getMessage() + "\n(You can select 'Microsoft Print to PDF' to save as PDF)",
+                    "Print Error",
+                    JOptionPane.ERROR_MESSAGE
             );
         }
     }

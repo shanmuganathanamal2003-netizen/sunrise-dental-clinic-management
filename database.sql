@@ -36,6 +36,7 @@ CREATE TABLE `patients` (
     `age` VARCHAR(30) NOT NULL DEFAULT '1 Month',
     `gender` VARCHAR(20) NOT NULL DEFAULT 'Not Specified',
     `contact_number` VARCHAR(20) NOT NULL,
+    `email` VARCHAR(150),
     `address` VARCHAR(255) NOT NULL,
     `medical_history` TEXT,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP

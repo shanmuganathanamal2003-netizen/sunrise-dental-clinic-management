@@ -14,6 +14,7 @@ public class Patient {
     private String age;             // e.g. "1 Month", "6 Months", "28 Years"
     private String gender;          // e.g. "Male", "Female", "Other"
     private String contactNumber;
+    private String email;
     private String address;
     private String medicalHistory;
     private Timestamp createdAt;
@@ -102,6 +103,14 @@ public class Patient {
 
     public void setContactNumber(String contactNumber) {
         this.contactNumber = contactNumber;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getAddress() {

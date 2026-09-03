@@ -18,6 +18,7 @@ import javax.swing.table.DefaultTableModel;
 import org.example.model.Appointment;
 import org.example.model.User;
 import org.example.service.AppointmentService;
+import org.example.service.EmailService;
 import org.example.view.components.AppMenuBar;
 import org.example.view.components.DatePickerDialog;
 import org.example.view.components.UIHelper;
@@ -495,6 +496,20 @@ public class DoctorQueueView extends JFrame {
                 if (success) {
                     JOptionPane.showMessageDialog(this, "Appointment #" + apptNo + " has been CONFIRMED.", "Appointment Confirmed", JOptionPane.INFORMATION_MESSAGE);
                     reloadCurrentFilter();
+
+                    try {
+                        Appointment fullAppt = appointmentService.getAppointmentByNumber(apptNo);
+                        if (fullAppt != null && fullAppt.getPatientId() != null) {
+                            org.example.model.Patient p = appointmentService.getPatientDetails(fullAppt.getPatientId());
+                            if (p != null) {
+                                new EmailService().sendConfirmationEmail(
+                                        p.getEmail(), patientName, apptNo,
+                                        fullAppt.getAppointmentDate(), fullAppt.getAppointmentTime(), currentUser.getFullName()
+                                );
+                            }
+                        }
+                    } catch (SQLException ignored) {
+                    }
                 }
             } catch (SQLException ex) {
                 JOptionPane.showMessageDialog(this, "Database error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
@@ -551,6 +566,17 @@ public class DoctorQueueView extends JFrame {
                 if (success) {
                     JOptionPane.showMessageDialog(this, "Appointment #" + apptNo + " has been CANCELLED.", "Appointment Cancelled", JOptionPane.INFORMATION_MESSAGE);
                     reloadCurrentFilter();
+
+                    try {
+                        Appointment fullAppt = appointmentService.getAppointmentByNumber(apptNo);
+                        if (fullAppt != null && fullAppt.getPatientId() != null) {
+                            org.example.model.Patient p = appointmentService.getPatientDetails(fullAppt.getPatientId());
+                            if (p != null) {
+                                new EmailService().sendCancellationEmail(p.getEmail(), patientName, apptNo, reason.trim());
+                            }
+                        }
+                    } catch (SQLException ignored) {
+                    }
                 }
             } catch (SQLException ex) {
                 JOptionPane.showMessageDialog(this, "Database error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
