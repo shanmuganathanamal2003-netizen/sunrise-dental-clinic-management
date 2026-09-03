@@ -25,8 +25,8 @@ public class PatientDAO {
      * @throws SQLException on database error
      */
     public int createPatient(Patient patient) throws SQLException {
-        String sql = "INSERT INTO patients (patient_name, age, gender, contact_number, address, medical_history) " +
-                     "VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO patients (patient_name, age, gender, contact_number, email, address, medical_history) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -35,8 +35,9 @@ public class PatientDAO {
             stmt.setString(2, patient.getAge() != null ? patient.getAge().trim() : "1 Month");
             stmt.setString(3, patient.getGender() != null ? patient.getGender().trim() : "Not Specified");
             stmt.setString(4, patient.getContactNumber().trim());
-            stmt.setString(5, patient.getAddress().trim());
-            stmt.setString(6, patient.getMedicalHistory() != null ? patient.getMedicalHistory().trim() : "");
+            stmt.setString(5, patient.getEmail() != null ? patient.getEmail().trim() : "");
+            stmt.setString(6, patient.getAddress().trim());
+            stmt.setString(7, patient.getMedicalHistory() != null ? patient.getMedicalHistory().trim() : "");
 
             int rowsAffected = stmt.executeUpdate();
             if (rowsAffected > 0) {
@@ -154,7 +155,7 @@ public class PatientDAO {
      * Updates an existing patient profile.
      */
     public boolean updatePatient(Patient patient) throws SQLException {
-        String sql = "UPDATE patients SET patient_name = ?, age = ?, gender = ?, contact_number = ?, address = ?, medical_history = ? WHERE patient_id = ?";
+        String sql = "UPDATE patients SET patient_name = ?, age = ?, gender = ?, contact_number = ?, email = ?, address = ?, medical_history = ? WHERE patient_id = ?";
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -163,9 +164,10 @@ public class PatientDAO {
             stmt.setString(2, patient.getAge().trim());
             stmt.setString(3, patient.getGender().trim());
             stmt.setString(4, patient.getContactNumber().trim());
-            stmt.setString(5, patient.getAddress().trim());
-            stmt.setString(6, patient.getMedicalHistory() != null ? patient.getMedicalHistory().trim() : "");
-            stmt.setInt(7, patient.getPatientId());
+            stmt.setString(5, patient.getEmail() != null ? patient.getEmail().trim() : "");
+            stmt.setString(6, patient.getAddress().trim());
+            stmt.setString(7, patient.getMedicalHistory() != null ? patient.getMedicalHistory().trim() : "");
+            stmt.setInt(8, patient.getPatientId());
 
             return stmt.executeUpdate() > 0;
         }
@@ -205,15 +207,17 @@ public class PatientDAO {
     }
 
     private Patient mapRowToPatient(ResultSet rs) throws SQLException {
-        return new Patient(
-            rs.getInt("patient_id"),
-            rs.getString("patient_name"),
-            rs.getString("age"),
-            rs.getString("gender"),
-            rs.getString("contact_number"),
-            rs.getString("address"),
-            rs.getString("medical_history"),
-            rs.getTimestamp("created_at")
+        Patient patient = new Patient(
+                rs.getInt("patient_id"),
+                rs.getString("patient_name"),
+                rs.getString("age"),
+                rs.getString("gender"),
+                rs.getString("contact_number"),
+                rs.getString("address"),
+                rs.getString("medical_history"),
+                rs.getTimestamp("created_at")
         );
+        patient.setEmail(rs.getString("email"));
+        return patient;
     }
 }
