@@ -60,10 +60,12 @@ public class HelpView extends JDialog {
                         "<h3 style='color: #185a9d;'>2. Adding New Appointments (New vs. Registered Patients)</h3>" +
                         "<p>• Select either <b>'Registered / Old Patient'</b> or <b>'New Patient'</b> mode:<br>" +
                         "&nbsp;&nbsp;• <i>Registered Patient:</i> Select an existing patient from the dropdown list to automatically auto-fill their demographic and contact details.<br>" +
-                        "&nbsp;&nbsp;• <i>New Patient:</i> Input patient name, address, contact, age, and medical history.<br>" +
+                        "&nbsp;&nbsp;• <i>New Patient:</i> Input patient name, address, contact number, mandatory email address, age, and medical history.<br>" +
+                        "• <b>Mandatory Email Validation:</b> Patient email address is strictly required. Appointments cannot be booked with a blank or invalid email address.<br>" +
+                        "• <b>Future / Today Date Enforcement:</b> Appointment date cannot be in the past. The system blocks any attempt to book an appointment for a past date.<br>" +
                         "• <b>Assigned Doctor:</b> Select an active doctor from the clinic's registered medical team.<br>" +
                         "• <b>Patient Age (Starting from 1 Month):</b> Specify age starting at 1 Month (e.g. 1 Month, 6 Months, 2 Years, 35 Years) using the unit selector.<br>" +
-                        "• <b>Interactive Calendar Date Picker:</b> Click the <b>'📅 Calendar'</b> button next to the date field to open a visual calendar picker with month/year navigation.<br>" +
+                        "• <b>Interactive Calendar Date Picker:</b> Click the <b>'📅 Calendar'</b> button next to the date field to open a visual calendar picker with past dates disabled.<br>" +
                         "• <b>Double-Booking Prevention:</b> The system verifies doctor availability and prevents double booking for the same time slot.<br>" +
                         "• <b>Clear Fee Breakdown:</b> View structured rows for Consultation Fee, Procedure Cost, and Total Estimate.</p>" +
 

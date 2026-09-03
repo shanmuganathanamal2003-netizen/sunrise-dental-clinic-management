@@ -42,6 +42,7 @@ public class PatientDAOTest {
                 "123 Test Lane, Colombo",
                 "No known allergies (created by automated test)"
         );
+        newPatient.setEmail("automation.patient@example.com");
 
         int generatedId = patientDAO.createPatient(newPatient);
         assertTrue(generatedId > 0, "createPatient() should return a positive generated patient_id");
@@ -49,6 +50,7 @@ public class PatientDAOTest {
         Patient fetched = patientDAO.getPatientById(generatedId);
         assertNotNull(fetched, "The newly created patient should be retrievable by ID");
         assertEquals("Test Automation Patient", fetched.getPatientName());
+        assertEquals("automation.patient@example.com", fetched.getEmail());
 
         patientDAO.deletePatient(generatedId);
     }
