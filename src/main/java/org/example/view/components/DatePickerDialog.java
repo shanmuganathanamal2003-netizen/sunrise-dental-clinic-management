@@ -204,7 +204,12 @@ public class DatePickerDialog extends JDialog {
             btnDay.setCursor(new Cursor(Cursor.HAND_CURSOR));
             btnDay.setMargin(new java.awt.Insets(1, 1, 1, 1));
 
-            if (thisDate.equals(selectedDate)) {
+            if (thisDate.isBefore(today)) {
+                btnDay.setEnabled(false);
+                btnDay.setBackground(new Color(245, 245, 245));
+                btnDay.setForeground(new Color(180, 180, 180));
+                btnDay.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+            } else if (thisDate.equals(selectedDate)) {
                 btnDay.setBackground(UIHelper.COLOR_PRIMARY);
                 btnDay.setForeground(Color.WHITE);
                 btnDay.setFont(new Font("Segoe UI", Font.BOLD, 12));
@@ -218,9 +223,11 @@ public class DatePickerDialog extends JDialog {
             }
 
             btnDay.addActionListener(e -> {
-                selectedDate = thisDate;
-                isConfirmed = true;
-                dispose();
+                if (!thisDate.isBefore(today)) {
+                    selectedDate = thisDate;
+                    isConfirmed = true;
+                    dispose();
+                }
             });
 
             daysPanel.add(btnDay);

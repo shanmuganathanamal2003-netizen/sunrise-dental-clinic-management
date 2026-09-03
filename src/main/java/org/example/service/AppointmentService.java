@@ -58,6 +58,16 @@ public class AppointmentService {
             throw new IllegalArgumentException("Appointment Time cannot be blank.");
         }
 
+        // Validate that Appointment Date is not in the past
+        try {
+            java.time.LocalDate parsedDate = java.time.LocalDate.parse(appointment.getAppointmentDate().trim());
+            if (parsedDate.isBefore(java.time.LocalDate.now())) {
+                throw new IllegalArgumentException("Appointment date cannot be in the past. Please select today's date or a future date.");
+            }
+        } catch (java.time.format.DateTimeParseException ex) {
+            throw new IllegalArgumentException("Invalid date format for Appointment Date. Please use YYYY-MM-DD.");
+        }
+
         // Contact Number format validation
         if (!appointment.getContactNumber().trim().matches("^[0-9+ -]{7,15}$")) {
             throw new IllegalArgumentException("Please enter a valid phone number (digits only, e.g. 0771234567).");

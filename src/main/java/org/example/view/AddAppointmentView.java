@@ -65,6 +65,7 @@ public class AddAppointmentView extends JFrame {
     private JLabel lblExistingNameVal;
     private JLabel lblExistingAgeVal;
     private JLabel lblExistingContactVal;
+    private JLabel lblExistingEmailVal;
     private JLabel lblExistingAddressVal;
     private JLabel lblExistingHistoryBadge;
 
@@ -272,6 +273,7 @@ public class AddAppointmentView extends JFrame {
         lblExistingNameVal = addReadOnlyInfoRow(panel, gbc, r++, "Patient Name:", "-");
         lblExistingAgeVal = addReadOnlyInfoRow(panel, gbc, r++, "Registered Age:", "-");
         lblExistingContactVal = addReadOnlyInfoRow(panel, gbc, r++, "Contact Number:", "-");
+        lblExistingEmailVal = addReadOnlyInfoRow(panel, gbc, r++, "Email Address *:", "-");
         lblExistingAddressVal = addReadOnlyInfoRow(panel, gbc, r++, "Residential Address:", "-");
         lblExistingHistoryBadge = addReadOnlyInfoRow(panel, gbc, r++, "Previous History:", "No past appointments");
 
@@ -337,6 +339,19 @@ public class AddAppointmentView extends JFrame {
         panel.add(txtNewContact, gbc);
         r++;
 
+        // Email Address (Mandatory)
+        gbc.gridx = 0; gbc.gridy = r;
+        JLabel lblEmail = new JLabel("Email Address *:");
+        lblEmail.setFont(UIHelper.FONT_BOLD);
+        panel.add(lblEmail, gbc);
+
+        gbc.gridx = 1;
+        txtNewEmail = new JTextField();
+        txtNewEmail.setFont(UIHelper.FONT_REGULAR);
+        txtNewEmail.setToolTipText("Patient email address (required to book an appointment)");
+        panel.add(txtNewEmail, gbc);
+        r++;
+
         // Residential Address
         gbc.gridx = 0; gbc.gridy = r;
         JLabel lblAddress = new JLabel("Residential Address *:");
@@ -347,19 +362,6 @@ public class AddAppointmentView extends JFrame {
         txtNewAddress = new JTextField();
         txtNewAddress.setFont(UIHelper.FONT_REGULAR);
         panel.add(txtNewAddress, gbc);
-        r++;
-
-
-        // Email Address
-        gbc.gridx = 0; gbc.gridy = r;
-        JLabel lblEmail = new JLabel("Email Address:");
-        lblEmail.setFont(UIHelper.FONT_REGULAR);
-        panel.add(lblEmail, gbc);
-
-        gbc.gridx = 1;
-        txtNewEmail = new JTextField();
-        txtNewEmail.setFont(UIHelper.FONT_REGULAR);
-        panel.add(txtNewEmail, gbc);
         r++;
 
         // Medical History Notes
@@ -593,6 +595,14 @@ public class AddAppointmentView extends JFrame {
             lblExistingNameVal.setText(selected.getPatientName());
             lblExistingAgeVal.setText(selected.getAge() != null ? selected.getAge() : "1 Month");
             lblExistingContactVal.setText(selected.getContactNumber());
+            String email = selected.getEmail();
+            if (email != null && !email.trim().isEmpty()) {
+                lblExistingEmailVal.setText(email);
+                lblExistingEmailVal.setForeground(UIHelper.COLOR_DARK_TEXT);
+            } else {
+                lblExistingEmailVal.setText("Not Provided (Required for Booking)");
+                lblExistingEmailVal.setForeground(UIHelper.COLOR_DANGER);
+            }
             lblExistingAddressVal.setText(selected.getAddress());
 
             // Count previous appointments
@@ -607,6 +617,7 @@ public class AddAppointmentView extends JFrame {
             lblExistingNameVal.setText("-");
             lblExistingAgeVal.setText("-");
             lblExistingContactVal.setText("-");
+            lblExistingEmailVal.setText("-");
             lblExistingAddressVal.setText("-");
             lblExistingHistoryBadge.setText("-");
         }
@@ -640,6 +651,33 @@ public class AddAppointmentView extends JFrame {
                 JOptionPane.showMessageDialog(this, "Please select an existing patient from the list.", "Missing Patient", JOptionPane.WARNING_MESSAGE);
                 return;
             }
+
+            // Verify existing patient has email address
+            String patientEmail = selected.getEmail();
+            if (patientEmail == null || patientEmail.trim().isEmpty()) {
+                String inputEmail = JOptionPane.showInputDialog(
+                    this,
+                    "Email address is required to book an appointment!\n\nPlease enter the email address for patient: " + selected.getPatientName(),
+                    "Patient Email Required",
+                    JOptionPane.WARNING_MESSAGE
+                );
+                if (inputEmail == null || inputEmail.trim().isEmpty()) {
+                    JOptionPane.showMessageDialog(this, "Appointment cannot be booked without a valid email address.", "Missing Email", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+                if (!inputEmail.trim().matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
+                    JOptionPane.showMessageDialog(this, "Please enter a valid email address (e.g. name@example.com).", "Invalid Email Format", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+                selected.setEmail(inputEmail.trim());
+                try {
+                    patientDAO.updatePatient(selected);
+                    updateExistingPatientFields();
+                } catch (SQLException ex) {
+                    System.out.println("Notice updating patient email: " + ex.getMessage());
+                }
+            }
+
             patientId = selected.getPatientId();
             patientName = selected.getPatientName();
             patientAge = selected.getAge();
@@ -652,6 +690,7 @@ public class AddAppointmentView extends JFrame {
             patientAge = ageVal + " " + (ageUnit.startsWith("Month") ? "Month(s)" : "Year(s)");
             contactNumber = txtNewContact.getText().trim();
             address = txtNewAddress.getText().trim();
+            String email = txtNewEmail.getText().trim();
             String medicalNotes = txtNewMedicalNotes.getText().trim();
 
             if (patientName.isEmpty()) {
@@ -664,6 +703,16 @@ public class AddAppointmentView extends JFrame {
                 txtNewContact.requestFocus();
                 return;
             }
+            if (email.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Email address cannot be blank!\nEmail is required to book an appointment.", "Missing Email", JOptionPane.WARNING_MESSAGE);
+                txtNewEmail.requestFocus();
+                return;
+            }
+            if (!email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
+                JOptionPane.showMessageDialog(this, "Please enter a valid email address (e.g. name@example.com).", "Invalid Email Format", JOptionPane.WARNING_MESSAGE);
+                txtNewEmail.requestFocus();
+                return;
+            }
             if (address.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Please enter the Residential Address.", "Missing Address", JOptionPane.WARNING_MESSAGE);
                 txtNewAddress.requestFocus();
@@ -672,7 +721,6 @@ public class AddAppointmentView extends JFrame {
 
             // Create patient record
             try {
-                String email = txtNewEmail.getText().trim();
                 Patient newP = new Patient(patientName, patientAge, "Not Specified", contactNumber, address, medicalNotes);
                 newP.setEmail(email);
                 patientId = patientDAO.createPatient(newP);
@@ -697,6 +745,25 @@ public class AddAppointmentView extends JFrame {
 
         if (treatment == null) {
             JOptionPane.showMessageDialog(this, "Please select a Treatment procedure.", "Missing Selection", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        if (appointmentDate.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter the Appointment Date.", "Missing Date", JOptionPane.WARNING_MESSAGE);
+            txtAppointmentDate.requestFocus();
+            return;
+        }
+
+        try {
+            LocalDate parsedDate = LocalDate.parse(appointmentDate);
+            if (parsedDate.isBefore(LocalDate.now())) {
+                JOptionPane.showMessageDialog(this, "Appointment date cannot be in the past. Please select today's date or a future date.", "Invalid Appointment Date", JOptionPane.WARNING_MESSAGE);
+                txtAppointmentDate.requestFocus();
+                return;
+            }
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Please enter a valid appointment date in YYYY-MM-DD format.", "Invalid Date Format", JOptionPane.WARNING_MESSAGE);
+            txtAppointmentDate.requestFocus();
             return;
         }
 

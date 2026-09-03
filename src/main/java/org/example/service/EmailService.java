@@ -17,8 +17,8 @@ import java.util.Properties;
 public class EmailService {
 
     // ===== REPLACE THESE TWO LINES WITH YOUR OWN GMAIL DETAILS =====
-    private static final String SENDER_EMAIL = "sunrisedentalclinicnoreply@gmail.com";
-    private static final String SENDER_APP_PASSWORD = "8675420@sunrise";
+    private static final String SENDER_EMAIL = "amalpersonal2025@gmail.com";
+    private static final String SENDER_APP_PASSWORD = "pazksgwdjbmleuwz";
     // =================================================================
 
     private Session buildSession() {
