@@ -14,6 +14,7 @@ import org.example.view.DoctorQueueView;
 import org.example.view.HelpView;
 import org.example.view.LoginView;
 import org.example.view.MainMenuView;
+import org.example.view.ManageStaffView;
 import org.example.view.PatientHistoryView;
 import org.example.view.ReportsView;
 
@@ -147,9 +148,22 @@ public class AppMenuBar extends JMenuBar {
 
             menuReports.add(itemReports);
             menuBar.add(menuReports);
+
+            // 6. Staff & Doctor Management Menu (Admin only)
+            JMenu menuStaff = new JMenu("Staff & Doctors");
+            menuStaff.setFont(menuFont);
+
+            JMenuItem itemStaff = new JMenuItem("Manage Doctors & Receptionists");
+            itemStaff.setFont(menuFont);
+            itemStaff.addActionListener(e -> {
+                UIHelper.navigate(currentFrame, new ManageStaffView(currentUser));
+            });
+
+            menuStaff.add(itemStaff);
+            menuBar.add(menuStaff);
         }
 
-        // 6. Help Menu
+        // 7. Help Menu
         JMenu menuHelp = new JMenu("Help");
         menuHelp.setFont(menuFont);
 
