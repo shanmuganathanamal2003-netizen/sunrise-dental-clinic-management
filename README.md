@@ -51,10 +51,15 @@ An advanced, user-friendly, and menu-driven Java Desktop Application developed f
     - Clinic revenue summaries, doctor workload metrics, and treatment popularity statistics.
     - Printable analytics sheets for administrative decision-making.
 
-9. **Built-in System Documentation (`HelpView`)**:
-    - Integrated operational guide explaining role permissions, booking steps, billing rules, and troubleshooting.
+9. **Staff & Doctor Management (`ManageStaffView` - Admin Only)**:
+    - Restricted portal allowing Administrators exclusively to manage clinic personnel.
+    - Add, search, filter, edit, and remove **Doctors** and **Receptionists** in the system.
+    - Role assignment, duplicate username prevention, and protection against accidental self-deletion.
 
-10. **Web Services Layer & REST API (`ApiServer`)**:
+10. **Built-in System Documentation (`HelpView`)**:
+    - Integrated operational guide explaining role permissions, booking steps, billing rules, staff management, and troubleshooting.
+
+11. **Web Services Layer & REST API (`ApiServer`)**:
     - A lightweight embedded HTTP server (Java `com.sun.net.httpserver`) runs alongside the Swing desktop app on **port `8080`**, exposing live appointment data as JSON — without altering any existing Swing screens or business logic.
     - **Endpoint**: `GET /api/appointments`
         - No query params → returns **all** appointments.

@@ -232,26 +232,29 @@ public class MainMenuView extends JFrame {
 
         JPanel actionMenuPanel;
         if (isAdmin) {
-            actionMenuPanel = new JPanel(new GridLayout(5, 1, 10, 10));
-            actionMenuPanel.setPreferredSize(new Dimension(360, 360));
+            actionMenuPanel = new JPanel(new GridLayout(6, 1, 10, 10));
+            actionMenuPanel.setPreferredSize(new Dimension(360, 420));
 
             JButton btnAddAppt = createActionButton("1. Add New Appointment (New / Old Patient)");
             JButton btnViewAll = createActionButton("2. View All Confirmed Appointments");
             JButton btnPatientSearchHistory = createActionButton("3. Patient Search & Medical History");
             JButton btnBill = createActionButton("4. Calculate & Print Patient Bill");
             JButton btnReports = createActionButton("5. Management & Revenue Reports");
+            JButton btnManageStaff = createActionButton("6. Manage Doctors & Receptionists");
 
             btnAddAppt.addActionListener(e -> UIHelper.navigate(this, new AddAppointmentView(currentUser)));
             btnViewAll.addActionListener(e -> UIHelper.navigate(this, new AppointmentListView(currentUser)));
             btnPatientSearchHistory.addActionListener(e -> UIHelper.navigate(this, new PatientHistoryView(currentUser)));
             btnBill.addActionListener(e -> UIHelper.navigate(this, new BillView(currentUser, -1)));
             btnReports.addActionListener(e -> UIHelper.navigate(this, new ReportsView(currentUser)));
+            btnManageStaff.addActionListener(e -> UIHelper.navigate(this, new ManageStaffView(currentUser)));
 
             actionMenuPanel.add(btnAddAppt);
             actionMenuPanel.add(btnViewAll);
             actionMenuPanel.add(btnPatientSearchHistory);
             actionMenuPanel.add(btnBill);
             actionMenuPanel.add(btnReports);
+            actionMenuPanel.add(btnManageStaff);
         } else if (isDoctor) {
             actionMenuPanel = new JPanel(new GridLayout(2, 1, 10, 10));
             actionMenuPanel.setPreferredSize(new Dimension(360, 160));

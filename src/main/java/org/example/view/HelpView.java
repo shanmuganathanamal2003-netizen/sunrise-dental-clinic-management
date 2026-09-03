@@ -98,6 +98,13 @@ public class HelpView extends JDialog {
                         "• The appointment row is immediately highlighted in <b style='color:#c0392b;'>red</b> in the list so cancelled appointments are easy to spot at a glance.<br>" +
                         "• This cancellation process works the same way for both Staff and Doctors — only the screen you start from differs.</p>" +
 
+                        "<h3 style='color: #185a9d;'>8. Staff & Doctor Management (Admin Only)</h3>" +
+                        "<p>• <b>Admin Exclusive:</b> Only users with the <b>Admin</b> role have access to create, update, or remove clinic personnel.<br>" +
+                        "• <b>Manage Doctors & Receptionists:</b> Access from the Admin Dashboard (Button 6) or the 'Staff & Doctors' menu bar.<br>" +
+                        "• <b>Add New Staff/Doctor:</b> Register new doctors or front desk receptionists with customized credentials, full names, and roles.<br>" +
+                        "• <b>Edit Staff:</b> Update employee names, system roles, or change/reset passwords.<br>" +
+                        "• <b>Remove Staff:</b> Delete inactive staff members safely (with protection against deleting the active Administrator account).</p>" +
+
                         "</body>" +
                         "</html>";
 
